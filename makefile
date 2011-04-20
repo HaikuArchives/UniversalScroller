@@ -23,6 +23,8 @@ dist: all
 	cp src/filter/obj.$(BE_HOST_CPU)/UniversalScroller dist
 	chmod +x dist/install.sh
 	chmod +x dist/uninstall.sh
+	scripts/substituting_cp.sh scripts/preferences_not_working.sh dist/Preferences
+	chmod +x dist/Preferences
 
 dist-zip: dist
 	rm -rf $(NAME)-$(VERSION)
