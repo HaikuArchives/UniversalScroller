@@ -1,4 +1,4 @@
-##!/bin/sh
+#!/bin/sh
 cd `dirname "$0"`
 alert --info --modal  "You are about to uninstall
 {{NAME}}

@@ -1,5 +1,6 @@
 export
 SUBDIRS=src/filter src/preferences
+ENV_VERSION:=$(VERSION)
 VERSION=$(shell if test -z $$VERSION ; then if test -e .git ; then echo git-$(shell git branch | grep '*' | sed -e 's/^[[:space:]]*\*[[:space:]]*//' -e 's/[^a-zA-Z]/_/g')-$(shell date +'%Y%m%d') ; else echo "UNKNOWN" ; fi ; else echo $$VERSION ; fi )
 
 NAME=UniversalScroller
@@ -20,6 +21,8 @@ dist: all
 	scripts/substituting_cp.sh scripts/uninstall.sh dist
 	cp src/preferences/obj.$(BE_HOST_CPU)/Preferences dist
 	cp src/filter/obj.$(BE_HOST_CPU)/UniversalScroller dist
+	chmod +x dist/install.sh
+	chmod +x dist/uninstall.sh
 
 dist-zip: dist
 	rm -rf $(NAME)-$(VERSION)
@@ -28,5 +31,5 @@ dist-zip: dist
 	rm -rf $(NAME)-$(VERSION)
 
 release:
-	if test x$(VERSION) != x$$VERSION ; then echo -e "\n\n\nTry issuing:\n\n  VERSION=3.9 make release\n\n" >&2 ; exit 1 ; fi
+	if test x$(VERSION) != x$(ENV_VERSION) ; then echo -e "\n\n\nTry issuing:\n\n  VERSION=3.9 make release\n\n" >&2 ; exit 1 ; fi
 	$(MAKE) dist-zip
