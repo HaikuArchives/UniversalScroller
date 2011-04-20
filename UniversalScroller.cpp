@@ -30,7 +30,7 @@
 
 #include <add-ons/input_server/InputServerFilter.h>
 
-#include "../includes/TMsystem.h"
+#include "TMsystem.h"
 
 #include "button.h"
 
