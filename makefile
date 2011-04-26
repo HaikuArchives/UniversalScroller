@@ -35,3 +35,10 @@ dist-zip: dist
 release:
 	if test x$(VERSION) != x$(ENV_VERSION) ; then echo -e "\n\n\nTry issuing:\n\n  VERSION=3.9 make release\n\n" >&2 ; exit 1 ; fi
 	$(MAKE) dist-zip
+	
+test_UniversalScroller: all	
+	cp src/filter/obj.x86/UniversalScroller /boot/home/config/add-ons/input_server/filters
+	/system/servers/input_server -q
+	for i in $(shell seq 10 -1 0 ) ; do echo -n "$$i " ; sleep 1 ; done
+	rm -f /boot/home/config/add-ons/input_server/filters/UniversalScroller
+	/system/servers/input_server -q
