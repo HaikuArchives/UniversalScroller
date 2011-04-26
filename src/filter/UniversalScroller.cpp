@@ -31,7 +31,7 @@
 #include <add-ons/input_server/InputServerFilter.h>
 
 #include "TMsystem.h"
-
+#include "button.h"
 #include "Configuration.h"
 
 extern "C" _EXPORT BInputServerFilter* instantiate_input_filter();
