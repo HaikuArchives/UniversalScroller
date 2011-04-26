@@ -64,7 +64,7 @@ status_t UniversalScroller::InitCheck()
 
 #define SEND_MOUSE_UP( BUTTONS ) \
 	CREATE_MSG( B_MOUSE_UP ); \
-	msg->AddPoint("where",mousepoint); \
+	msg->AddPoint("where",mousePosition); \
 	msg->AddInt32("modifiers",modifiers); \
 	msg->AddInt32("buttons", BUTTONS ); \
 	ENLIST_MSG();	
@@ -75,14 +75,20 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 {
 
  // Store the states of three used modifier keys.
- static bool isShiftKeyDown=false;
- static bool isAltKeyDown=false;
+ static bool isShiftKeyDown  =false;
+ static bool isAltKeyDown    =false;
  static bool isControlKeyDown=false;
 
+ // the last known mouse position
+ static BPoint mousePosition;
+ 
+ // the position, where the last mouse button went down
+ static BPoint mouseButtonDownPosition;
+
+ // msg holds the message that is going to be injected into outList
  BMessage *msg;
 
- BPoint mousepoint;
- static BPoint mousedown;
+ 
  static int64 last_click_time[3]={0,0,0};
  static int64 click_count[3]={0,0,0};
  float deltax=0,deltay=0;
@@ -142,7 +148,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 	case B_MOUSE_DOWN:
 		if (!isAltKeyDown)
 		{
-		  	message->FindPoint("where",&mousedown);
+		  	message->FindPoint("where",&mouseButtonDownPosition);
 		  	message->FindInt32("buttons",&buttons);
 			message->FindInt32("modifiers",&modifiers);
 			res=B_SKIP_MESSAGE;
@@ -183,7 +189,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 						click_count[new_button_down]++;
 						new_clicks--;
 						CREATE_MSG( B_MOUSE_DOWN );
-						msg->AddPoint("where",mousedown);
+						msg->AddPoint("where",mouseButtonDownPosition);
 						msg->AddInt32("modifiers",modifiers);
 						msg->AddInt32("buttons",internal_buttons);
 						msg->AddInt32("clicks",click_count[new_button_down]);
@@ -291,7 +297,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 	
 		if (!isAltKeyDown)
 		{
-		  	message->FindPoint("where",&mousepoint);
+		  	message->FindPoint("where",&mousePosition);
 		  	message->FindInt32("buttons",&buttons);
 			message->FindInt32("modifiers",&modifiers);
 	
@@ -364,9 +370,9 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 			message->FindInt32("modifiers",&modifiers);
 			if (configuration.scrollmousedown[buttons])
 			{	
-				message->FindPoint("where",&mousepoint);
-				deltax=configuration.factorX[isControlKeyDown?1:0]*(mousepoint.x-mousedown.x);
-				deltay=configuration.factorY[isControlKeyDown?1:0]*(mousepoint.y-mousedown.y);
+				message->FindPoint("where",&mousePosition);
+				deltax=configuration.factorX[isControlKeyDown?1:0]*(mousePosition.x-mouseButtonDownPosition.x);
+				deltay=configuration.factorY[isControlKeyDown?1:0]*(mousePosition.y-mouseButtonDownPosition.y);
 
 				if ((deltax*deltax>configuration.minScroll) || (deltay*deltay>configuration.minScroll))
 				{	
