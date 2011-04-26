@@ -53,12 +53,23 @@ status_t UniversalScroller::InitCheck()
 	return B_OK;
 }
 
+#define CREATE_MSG_OFFSET( KIND, OFFSET ) \
+	msg=new BMessage( KIND ); \
+	msg->AddInt64("when",system_time()+(OFFSET));
+
+#define CREATE_MSG( KIND ) CREATE_MSG_OFFSET( KIND, 0 )
+#define CREATE_OLD_MSG( KIND ) CREATE_MSG_OFFSET( KIND, -5 )
+
+#define ENLIST_MSG() outList->AddItem(msg);
+
+
 filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 {
 
- static bool shiftdown=false;
- static bool altdown=false;
- static bool controldown=false;
+ // Store the states of three used modifier keys.
+ static bool isShiftKeyDown=false;
+ static bool isAltKeyDown=false;
+ static bool isControlKeyDown=false;
 
  BMessage *msg;
 
@@ -89,41 +100,40 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
  {
 	case B_MODIFIERS_CHANGED:
 		message->FindInt32("modifiers",&modifiers);
-		shiftdown=((modifiers&B_SHIFT_KEY)==B_SHIFT_KEY);
-		controldown=((modifiers&B_CONTROL_KEY)==B_CONTROL_KEY);
-		altdown=((modifiers&B_OPTION_KEY)==B_OPTION_KEY);
-		if ((altdown) && (old_internal_buttons!=0))
+		isShiftKeyDown=((modifiers&B_SHIFT_KEY)==B_SHIFT_KEY);
+		isControlKeyDown=((modifiers&B_CONTROL_KEY)==B_CONTROL_KEY);
+		isAltKeyDown=((modifiers&B_OPTION_KEY)==B_OPTION_KEY);
+		if ((isAltKeyDown) && (old_internal_buttons!=0))
 		{
 			old_internal_buttons=0;
 			old_buttons=0;
-			msg=new BMessage(B_MOUSE_UP);
-			msg->AddInt64("when",system_time());
+			
+			CREATE_MSG( B_MOUSE_UP );
 			msg->AddPoint("where",mousepoint);
 			msg->AddInt32("modifiers",modifiers);
 			msg->AddInt32("buttons",old_internal_buttons);
-			outList->AddItem(msg);	
+			ENLIST_MSG();
 		}
 		break;
 	
 	case B_MOUSE_WHEEL_CHANGED:
 		float hfloat;
-	  	if ((!altdown) && ((shiftdown) || (configuration.factorsforwheel)))
+	  	if ((!isAltKeyDown) && ((isShiftKeyDown) || (configuration.factorsforwheel)))
 	  	{                               
 	  		message->FindFloat("be:wheel_delta_x",&deltax);
 	  		message->FindFloat("be:wheel_delta_y",&deltay);
 
-			msg=new BMessage(B_MOUSE_WHEEL_CHANGED);
-			msg->AddInt64("when",system_time());
-		  	if (shiftdown) {hfloat=deltax;deltax=deltay;deltay=hfloat;}
-		  	if (configuration.factorsforwheel) {deltax*=configuration.factorX[controldown?1:0];deltay*=configuration.factorY[controldown?1:0];}
+			CREATE_MSG( B_MOUSE_WHEEL_CHANGED );
+			if (isShiftKeyDown) {hfloat=deltax;deltax=deltay;deltay=hfloat;}
+		  	if (configuration.factorsforwheel) {deltax*=configuration.factorX[isControlKeyDown?1:0];deltay*=configuration.factorY[isControlKeyDown?1:0];}
 		  	msg->AddFloat("be:wheel_delta_x",deltax); //so swap x and y here
 	  		msg->AddFloat("be:wheel_delta_y",deltay);
-	  		outList->AddItem(msg);
+	  		ENLIST_MSG();
 	  	}
 		break;
 		
 	case B_MOUSE_DOWN:
-		if (!altdown)
+		if (!isAltKeyDown)
 		{
 		  	message->FindPoint("where",&mousedown);
 		  	message->FindInt32("buttons",&buttons);
@@ -165,22 +175,20 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 					{
 						click_count[new_button_down]++;
 						new_clicks--;
-						msg=new BMessage(B_MOUSE_DOWN);
-						msg->AddInt64("when",system_time());
+						CREATE_MSG( B_MOUSE_DOWN );
 						msg->AddPoint("where",mousedown);
 						msg->AddInt32("modifiers",modifiers);
 						msg->AddInt32("buttons",internal_buttons);
 						msg->AddInt32("clicks",click_count[new_button_down]);
-						outList->AddItem(msg);
+						ENLIST_MSG();
 					
 						if (new_clicks>0)
 						{
-							msg=new BMessage(B_MOUSE_UP);
-							msg->AddInt64("when",system_time());
+							CREATE_MSG( B_MOUSE_UP );
 							msg->AddPoint("where",mousepoint);
 							msg->AddInt32("modifiers",modifiers);
 							msg->AddInt32("buttons",old_internal_buttons);
-							outList->AddItem(msg);	
+							ENLIST_MSG();	
 						}	
 					}
 					res=B_DISPATCH_MESSAGE;
@@ -189,25 +197,22 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 				}
 				
 				if (strcasecmp(configuration.cmd[cmdidx],CUT)==0)
-				{	msg=new BMessage('CCUT');
-					msg->AddInt64("when",system_time()-5);
-					outList->AddItem(msg);	
+				{	CREATE_OLD_MSG( 'CCUT' );
+					ENLIST_MSG();	
 					done=true;
 					res=B_DISPATCH_MESSAGE;
 				}
 
 				if (strcasecmp(configuration.cmd[cmdidx],COPY)==0)
-				{	msg=new BMessage('COPY');
-					msg->AddInt64("when",system_time()-5);
-					outList->AddItem(msg);	
+				{	CREATE_OLD_MSG( 'COPY' );
+					ENLIST_MSG();	
 					done=true;
 					res=B_DISPATCH_MESSAGE;
 				}
 
 				if (strcasecmp(configuration.cmd[cmdidx],PASTE)==0)
-				{	msg=new BMessage('PSTE');
-					msg->AddInt64("when",system_time()-5);
-					outList->AddItem(msg);	
+				{	CREATE_OLD_MSG( 'PSTE' );
+					ENLIST_MSG();	
 					done=true;
 					res=B_DISPATCH_MESSAGE;
 				}
@@ -234,14 +239,12 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 					for (i=0;i<numbytes;i++)
 						byte[i]=atoi(bytes);	bytes=strstr(bytes,"_")+1;
 
-					msg=new BMessage(B_MODIFIERS_CHANGED);
-					msg->AddInt64("when",system_time());
+					CREATE_MSG( B_MODIFIERS_CHANGED );
 					msg->AddInt32("modifiers",virtual_modifiers);
 					msg->AddInt32("be:old_modifiers",modifiers);
-					outList->AddItem(msg);	
+					ENLIST_MSG();	
 
-					msg=new BMessage(B_KEY_DOWN);
-					msg->AddInt64("when",system_time());
+					CREATE_MSG( B_KEY_DOWN );
 					msg->AddInt32("modifiers",virtual_modifiers);
 					msg->AddInt32("key",key);
 					msg->AddInt32("raw_char",rawchar);
@@ -249,10 +252,9 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 						msg->AddInt8("byte",byte[i]);
 					msg->AddString("bytes",bytes);
 					msg->AddInt8("states",0);
-					outList->AddItem(msg);	
+					ENLIST_MSG();	
 
-					msg=new BMessage(B_KEY_UP);
-					msg->AddInt64("when",system_time());
+					CREATE_MSG( B_KEY_UP );
 					msg->AddInt32("modifiers",virtual_modifiers);
 					msg->AddInt32("key",key);
 					msg->AddInt32("raw_char",rawchar);
@@ -260,13 +262,12 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 						msg->AddInt8("byte",byte[i]);
 					msg->AddString("bytes",bytes);
 					msg->AddInt8("states",0);
-					outList->AddItem(msg);	
+					ENLIST_MSG();	
 
-					msg=new BMessage(B_MODIFIERS_CHANGED);
-					msg->AddInt64("when",system_time());
+					CREATE_MSG( B_MODIFIERS_CHANGED );
 					msg->AddInt32("modifiers",modifiers);
 					msg->AddInt32("be:old_modifiers",virtual_modifiers);
-					outList->AddItem(msg);	
+					ENLIST_MSG();	
 
 					res=B_DISPATCH_MESSAGE;
 
@@ -285,7 +286,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 		int i;
 		char str[31];
 	
-		if (!altdown)
+		if (!isAltKeyDown)
 		{
 		  	message->FindPoint("where",&mousepoint);
 		  	message->FindInt32("buttons",&buttons);
@@ -297,12 +298,11 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 			{
 				if (buttons==0)
 				{
-					msg=new BMessage(B_MOUSE_UP);
-					msg->AddInt64("when",system_time());
+					CREATE_MSG( B_MOUSE_UP );
 					msg->AddPoint("where",mousepoint);
 					msg->AddInt32("modifiers",modifiers);
 					msg->AddInt32("buttons",0);
-					outList->AddItem(msg);	
+					ENLIST_MSG();	
 					res=B_DISPATCH_MESSAGE;
 					old_internal_buttons=0;
 				}
@@ -348,12 +348,11 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 					//for und if hier zuende
 					if (internal_buttons!=old_internal_buttons)
 					{
-						msg=new BMessage(B_MOUSE_UP);
-						msg->AddInt64("when",system_time());
+						CREATE_MSG( B_MOUSE_UP );
 						msg->AddPoint("where",mousepoint);
 						msg->AddInt32("modifiers",modifiers);
 						msg->AddInt32("buttons",internal_buttons);
-						outList->AddItem(msg);	
+						ENLIST_MSG();	
 						res=B_DISPATCH_MESSAGE;
 						old_internal_buttons=internal_buttons;
 					}
@@ -364,37 +363,35 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
   	break;	
 	
 	case B_MOUSE_MOVED:
-		if (!altdown)
+		if (!isAltKeyDown)
 		{
 		  	message->FindInt32("buttons",&buttons);
 			message->FindInt32("modifiers",&modifiers);
 			if (configuration.scrollmousedown[buttons])
 			{	
 				message->FindPoint("where",&mousepoint);
-				deltax=configuration.factorX[controldown?1:0]*(mousepoint.x-mousedown.x);
-				deltay=configuration.factorY[controldown?1:0]*(mousepoint.y-mousedown.y);
+				deltax=configuration.factorX[isControlKeyDown?1:0]*(mousepoint.x-mousedown.x);
+				deltay=configuration.factorY[isControlKeyDown?1:0]*(mousepoint.y-mousedown.y);
 
 				if ((deltax*deltax>configuration.minScroll) || (deltay*deltay>configuration.minScroll))
 				{	
 					if (old_internal_buttons!=0)
 					{
-						msg=new BMessage(B_MOUSE_UP);
-						msg->AddInt64("when",system_time());
+						CREATE_MSG( B_MOUSE_UP );
 						msg->AddPoint("where",mousepoint);
 						msg->AddInt32("modifiers",modifiers);
 						msg->AddInt32("buttons",0);
-						outList->AddItem(msg);	
+						ENLIST_MSG();	
 					
 						old_internal_buttons=0;
 					
 					}
 					
-					msg=new BMessage(B_MOUSE_WHEEL_CHANGED);
-					msg->AddInt64("when",system_time());
-				  	if (shiftdown) {hfloat=deltax;deltax=deltay;deltay=hfloat;}
+					CREATE_MSG( B_MOUSE_WHEEL_CHANGED );
+				  	if (isShiftKeyDown) {hfloat=deltax;deltax=deltay;deltay=hfloat;}
 		  			msg->AddFloat("be:wheel_delta_x",deltax); //so swap x and y here
 		  			msg->AddFloat("be:wheel_delta_y",deltay);
-			  		outList->AddItem(msg);
+			  		ENLIST_MSG();
 				}
 	
 			}
