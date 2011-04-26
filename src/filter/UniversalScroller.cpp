@@ -69,6 +69,8 @@ status_t UniversalScroller::InitCheck()
 	msg->AddInt32("buttons", BUTTONS ); \
 	ENLIST_MSG();	
 
+#define IS_MODIFIER_SET( MODIFIER )  ( ( modifiers & MODIFIER ) == MODIFIER )
+
 filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 {
 
@@ -105,10 +107,13 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
  switch (message->what)
  {
 	case B_MODIFIERS_CHANGED:
+		
 		message->FindInt32("modifiers",&modifiers);
-		isShiftKeyDown=((modifiers&B_SHIFT_KEY)==B_SHIFT_KEY);
-		isControlKeyDown=((modifiers&B_CONTROL_KEY)==B_CONTROL_KEY);
-		isAltKeyDown=((modifiers&B_OPTION_KEY)==B_OPTION_KEY);
+		
+		isShiftKeyDown  = IS_MODIFIER_SET( B_SHIFT_KEY   );
+		isControlKeyDown= IS_MODIFIER_SET( B_CONTROL_KEY );
+		isAltKeyDown    = IS_MODIFIER_SET( B_OPTION_KEY  );
+		
 		if ((isAltKeyDown) && (old_internal_buttons!=0))
 		{
 			old_internal_buttons=0;
