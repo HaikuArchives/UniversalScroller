@@ -26,33 +26,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <be/support/TypeConstants.h>
 
-#include <add-ons/input_server/InputServerFilter.h>
+
+
 
 #include "TMsystem.h"
 #include "button.h"
 #include "Configuration.h"
 
-extern "C" _EXPORT BInputServerFilter* instantiate_input_filter();
-
-class UniversalScroller : public BInputServerFilter 
-{
-	private:
-		Configuration configuration;
-	public:
-		UniversalScroller();
-		virtual ~UniversalScroller();
-		virtual	filter_result Filter(BMessage *message, BList *outList);
-    	virtual status_t InitCheck(); 
+#include "UniversalScroller.h"
 
 
-};
 
-BInputServerFilter* instantiate_input_filter()
-{
-	return (new UniversalScroller());
-}
 
 
 UniversalScroller::UniversalScroller()

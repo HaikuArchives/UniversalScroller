@@ -27,6 +27,7 @@ TYPE= SHARED
 SRCS= \
 	UniversalScroller.cpp \
 	../common/Configuration.cpp \
+	instantiator.cpp
 #
 	
 #	specify the resource files to use
