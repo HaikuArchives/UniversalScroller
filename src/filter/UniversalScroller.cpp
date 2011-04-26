@@ -36,13 +36,13 @@
 
 extern "C" _EXPORT BInputServerFilter* instantiate_input_filter();
 
-class WheelEnhanceFilter : public BInputServerFilter 
+class UniversalScroller : public BInputServerFilter 
 {
 	private:
 		Configuration configuration;
 	public:
-		WheelEnhanceFilter();
-		virtual ~WheelEnhanceFilter();
+		UniversalScroller();
+		virtual ~UniversalScroller();
 		virtual	filter_result Filter(BMessage *message, BList *outList);
     	virtual status_t InitCheck(); 
 
@@ -51,24 +51,24 @@ class WheelEnhanceFilter : public BInputServerFilter
 
 BInputServerFilter* instantiate_input_filter()
 {
-	return (new WheelEnhanceFilter());
+	return (new UniversalScroller());
 }
 
 
-WheelEnhanceFilter::WheelEnhanceFilter()
+UniversalScroller::UniversalScroller()
 {
 }
 
-WheelEnhanceFilter::~WheelEnhanceFilter()
+UniversalScroller::~UniversalScroller()
 {
 }
 
-status_t WheelEnhanceFilter::InitCheck()
+status_t UniversalScroller::InitCheck()
 {
 	return B_OK;
 }
 
-filter_result WheelEnhanceFilter::Filter(BMessage *message, BList *outList)
+filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 {
 
  static bool shiftdown=false;
