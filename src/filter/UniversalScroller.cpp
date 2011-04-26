@@ -32,13 +32,14 @@
 
 #include "TMsystem.h"
 
-#include "button.h"
+#include "Configuration.h"
 
 extern "C" _EXPORT BInputServerFilter* instantiate_input_filter();
 
 class WheelEnhanceFilter : public BInputServerFilter 
 {
 	private:
+		Configuration configuration;
 	public:
 		WheelEnhanceFilter();
 		virtual ~WheelEnhanceFilter();
@@ -69,17 +70,6 @@ status_t WheelEnhanceFilter::InitCheck()
 
 filter_result WheelEnhanceFilter::Filter(BMessage *message, BList *outList)
 {
-
-
- static float factorX[2]={0.1,1.0},factorY[2]={0.1,1.0};
- static int minscroll=0;
- static int double_click_speed[3]={250000,250000,250000};
- static char cmd[9][255]={LEFT,"beep","beep",RIGHT,"beep","beep",MIDDLE,COPY,PASTE};
- static bool factorsforwheel=true;
- static bool scrollmousedown[8]={false,false,false,false,true,true,true,true};
- static bool swallowclick[8]={false,false,false,false,true,true,true,true};
-
-
 
  static bool shiftdown=false;
  static bool altdown=false;
@@ -132,7 +122,7 @@ filter_result WheelEnhanceFilter::Filter(BMessage *message, BList *outList)
 	
 	case B_MOUSE_WHEEL_CHANGED:
 		float hfloat;
-	  	if ((!altdown) && ((shiftdown) || (factorsforwheel)))
+	  	if ((!altdown) && ((shiftdown) || (configuration.factorsforwheel)))
 	  	{                               
 	  		message->FindFloat("be:wheel_delta_x",&deltax);
 	  		message->FindFloat("be:wheel_delta_y",&deltay);
@@ -140,7 +130,7 @@ filter_result WheelEnhanceFilter::Filter(BMessage *message, BList *outList)
 			msg=new BMessage(B_MOUSE_WHEEL_CHANGED);
 			msg->AddInt64("when",system_time());
 		  	if (shiftdown) {hfloat=deltax;deltax=deltay;deltay=hfloat;}
-		  	if (factorsforwheel) {deltax*=factorX[controldown?1:0];deltay*=factorY[controldown?1:0];}
+		  	if (configuration.factorsforwheel) {deltax*=configuration.factorX[controldown?1:0];deltay*=configuration.factorY[controldown?1:0];}
 		  	msg->AddFloat("be:wheel_delta_x",deltax); //so swap x and y here
 	  		msg->AddFloat("be:wheel_delta_y",deltay);
 	  		outList->AddItem(msg);
@@ -166,22 +156,22 @@ filter_result WheelEnhanceFilter::Filter(BMessage *message, BList *outList)
 			if ((old_buttons==4) && (buttons==5)) cmdidx=7;
 			if ((old_buttons==4) && (buttons==6)) cmdidx=8;
 
-			if ((cmdidx!=-1) && (!swallowclick[cmdidx]))
+			if ((cmdidx!=-1) && (!configuration.swallowclick[cmdidx]))
 			{
 				done=false;
 				new_button_down=-1;  
-				if (strncasecmp(cmd[cmdidx],LEFT,strlen(LEFT))==0) {done=true;new_button_down=0;if (strlen(cmd[cmdidx])==strlen(LEFT))new_clicks=1;else new_clicks=atoi(cmd[cmdidx]+strlen(LEFT));}
-				if (strncasecmp(cmd[cmdidx],RIGHT,strlen(RIGHT))==0) {done=true;new_button_down=1;if (strlen(cmd[cmdidx])==strlen(RIGHT))new_clicks=1;else new_clicks=atoi(cmd[cmdidx]+strlen(RIGHT));}
-				if (strncasecmp(cmd[cmdidx],MIDDLE,strlen(MIDDLE))==0) {done=true;new_button_down=2;if (strlen(cmd[cmdidx])==strlen(MIDDLE))new_clicks=1;else new_clicks=atoi(cmd[cmdidx]+strlen(MIDDLE));}
-				if (strncasecmp(cmd[cmdidx],LEFTDBL,strlen(LEFTDBL))==0) {done=true;new_button_down=0;new_clicks=2;}
-				if (strncasecmp(cmd[cmdidx],RIGHTDBL,strlen(RIGHTDBL))==0) {done=true;new_button_down=1;new_clicks=2;}
-				if (strncasecmp(cmd[cmdidx],MIDDLEDBL,strlen(MIDDLEDBL))==0) {done=true;new_button_down=2;new_clicks=2;}
+				if (strncasecmp(configuration.cmd[cmdidx],LEFT,strlen(LEFT))==0) {done=true;new_button_down=0;if (strlen(configuration.cmd[cmdidx])==strlen(LEFT))new_clicks=1;else new_clicks=atoi(configuration.cmd[cmdidx]+strlen(LEFT));}
+				if (strncasecmp(configuration.cmd[cmdidx],RIGHT,strlen(RIGHT))==0) {done=true;new_button_down=1;if (strlen(configuration.cmd[cmdidx])==strlen(RIGHT))new_clicks=1;else new_clicks=atoi(configuration.cmd[cmdidx]+strlen(RIGHT));}
+				if (strncasecmp(configuration.cmd[cmdidx],MIDDLE,strlen(MIDDLE))==0) {done=true;new_button_down=2;if (strlen(configuration.cmd[cmdidx])==strlen(MIDDLE))new_clicks=1;else new_clicks=atoi(configuration.cmd[cmdidx]+strlen(MIDDLE));}
+				if (strncasecmp(configuration.cmd[cmdidx],LEFTDBL,strlen(LEFTDBL))==0) {done=true;new_button_down=0;new_clicks=2;}
+				if (strncasecmp(configuration.cmd[cmdidx],RIGHTDBL,strlen(RIGHTDBL))==0) {done=true;new_button_down=1;new_clicks=2;}
+				if (strncasecmp(configuration.cmd[cmdidx],MIDDLEDBL,strlen(MIDDLEDBL))==0) {done=true;new_button_down=2;new_clicks=2;}
 				if (new_button_down!=-1)
 				{
 					internal_buttons=old_internal_buttons|buttonval[new_button_down];
 
 					//zu langsam für doppelklick
-					if (system_time()-last_click_time[new_button_down]>double_click_speed[new_button_down])
+					if (system_time()-last_click_time[new_button_down]>configuration.doubleClickSpeed[new_button_down])
 						click_count[new_button_down]=0;
 						
 					last_click_time[new_button_down]=system_time();
@@ -213,7 +203,7 @@ filter_result WheelEnhanceFilter::Filter(BMessage *message, BList *outList)
 					old_internal_buttons=internal_buttons;
 				}
 				
-				if (strcasecmp(cmd[cmdidx],CUT)==0)
+				if (strcasecmp(configuration.cmd[cmdidx],CUT)==0)
 				{	msg=new BMessage('CCUT');
 					msg->AddInt64("when",system_time()-5);
 					outList->AddItem(msg);	
@@ -221,7 +211,7 @@ filter_result WheelEnhanceFilter::Filter(BMessage *message, BList *outList)
 					res=B_DISPATCH_MESSAGE;
 				}
 
-				if (strcasecmp(cmd[cmdidx],COPY)==0)
+				if (strcasecmp(configuration.cmd[cmdidx],COPY)==0)
 				{	msg=new BMessage('COPY');
 					msg->AddInt64("when",system_time()-5);
 					outList->AddItem(msg);	
@@ -229,7 +219,7 @@ filter_result WheelEnhanceFilter::Filter(BMessage *message, BList *outList)
 					res=B_DISPATCH_MESSAGE;
 				}
 
-				if (strcasecmp(cmd[cmdidx],PASTE)==0)
+				if (strcasecmp(configuration.cmd[cmdidx],PASTE)==0)
 				{	msg=new BMessage('PSTE');
 					msg->AddInt64("when",system_time()-5);
 					outList->AddItem(msg);	
@@ -237,7 +227,7 @@ filter_result WheelEnhanceFilter::Filter(BMessage *message, BList *outList)
 					res=B_DISPATCH_MESSAGE;
 				}
 				
-				if (strncasecmp(cmd[cmdidx],KEY,strlen(KEY))==0)
+				if (strncasecmp(configuration.cmd[cmdidx],KEY,strlen(KEY))==0)
 				{
 //"KEY_SHIFT_OPTION_CONTROL_key_raw-char_byte_#bytes_byte0[_byte1[_byte2]]_bytesZ"
 					int32 key=0;
@@ -248,11 +238,11 @@ filter_result WheelEnhanceFilter::Filter(BMessage *message, BList *outList)
 					
 					
 					virtual_modifiers=0;
-					if (strncmp(cmd[cmdidx]+i,SHIFT,strlen(SHIFT))==0) {virtual_modifiers|=B_SHIFT_KEY;i+=strlen(SHIFT);}
-					if (strncmp(cmd[cmdidx]+i,OPTION,strlen(OPTION))==0) {virtual_modifiers|=B_OPTION_KEY;i+=strlen(OPTION);}
-					if (strncmp(cmd[cmdidx]+i,CONTROL,strlen(CONTROL))==0) {virtual_modifiers|=B_CONTROL_KEY;i+=strlen(CONTROL);}
+					if (strncmp(configuration.cmd[cmdidx]+i,SHIFT,strlen(SHIFT))==0) {virtual_modifiers|=B_SHIFT_KEY;i+=strlen(SHIFT);}
+					if (strncmp(configuration.cmd[cmdidx]+i,OPTION,strlen(OPTION))==0) {virtual_modifiers|=B_OPTION_KEY;i+=strlen(OPTION);}
+					if (strncmp(configuration.cmd[cmdidx]+i,CONTROL,strlen(CONTROL))==0) {virtual_modifiers|=B_CONTROL_KEY;i+=strlen(CONTROL);}
 
-					bytes=cmd[cmdidx]+i+1;
+					bytes=configuration.cmd[cmdidx]+i+1;
 					key=atoi(bytes); 			bytes=strstr(bytes,"_")+1;
 					rawchar=atoi(bytes);		bytes=strstr(bytes,"_")+1;
 					numbytes=atoi(bytes);		bytes=strstr(bytes,"_")+1;
@@ -299,7 +289,7 @@ filter_result WheelEnhanceFilter::Filter(BMessage *message, BList *outList)
 				}
 				if (!done)
 				{
-					TMsystem(cmd[cmdidx]);
+					TMsystem(configuration.cmd[cmdidx]);
 				}
 			}
 			old_buttons=buttons;
@@ -345,25 +335,25 @@ filter_result WheelEnhanceFilter::Filter(BMessage *message, BList *outList)
 							if (i==5) strcpy(str,RIGHTDBL);
 							if
 							(!( 
-							((((buttons&B_PRIMARY_MOUSE_BUTTON)==B_PRIMARY_MOUSE_BUTTON) && (strcasecmp(str,cmd[0])==0)))
+							((((buttons&B_PRIMARY_MOUSE_BUTTON)==B_PRIMARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.cmd[0])==0)))
 							||
-							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON)) && (strcasecmp(str,cmd[1])==0)))
+							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.cmd[1])==0)))
 							||
-							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,cmd[2])==0)))
+							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.cmd[2])==0)))
 
 							||
-							((((buttons&B_SECONDARY_MOUSE_BUTTON)==B_SECONDARY_MOUSE_BUTTON) && (strcasecmp(str,cmd[3])==0)))
+							((((buttons&B_SECONDARY_MOUSE_BUTTON)==B_SECONDARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.cmd[3])==0)))
 							||
-							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON)) && (strcasecmp(str,cmd[4])==0)))
+							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.cmd[4])==0)))
 							||
-							((((buttons&(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,cmd[5])==0)))
+							((((buttons&(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.cmd[5])==0)))
 	
 							||
-							((((buttons&B_TERTIARY_MOUSE_BUTTON)==B_TERTIARY_MOUSE_BUTTON) && (strcasecmp(str,cmd[6])==0)))
+							((((buttons&B_TERTIARY_MOUSE_BUTTON)==B_TERTIARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.cmd[6])==0)))
 							||
-							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,cmd[7])==0)))
+							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.cmd[7])==0)))
 							||
-							((((buttons&(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,cmd[8])==0)))
+							((((buttons&(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.cmd[8])==0)))
 							))
 							{
 							internal_buttons=(internal_buttons-buttonval[i]);
@@ -393,13 +383,13 @@ filter_result WheelEnhanceFilter::Filter(BMessage *message, BList *outList)
 		{
 		  	message->FindInt32("buttons",&buttons);
 			message->FindInt32("modifiers",&modifiers);
-			if (scrollmousedown[buttons])
+			if (configuration.scrollmousedown[buttons])
 			{	
 				message->FindPoint("where",&mousepoint);
-				deltax=factorX[controldown?1:0]*(mousepoint.x-mousedown.x);
-				deltay=factorY[controldown?1:0]*(mousepoint.y-mousedown.y);
+				deltax=configuration.factorX[controldown?1:0]*(mousepoint.x-mousedown.x);
+				deltay=configuration.factorY[controldown?1:0]*(mousepoint.y-mousedown.y);
 
-				if ((deltax*deltax>minscroll) || (deltay*deltay>minscroll))
+				if ((deltax*deltax>configuration.minScroll) || (deltay*deltay>configuration.minScroll))
 				{	
 					if (old_internal_buttons!=0)
 					{
