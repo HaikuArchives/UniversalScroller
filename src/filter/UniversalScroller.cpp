@@ -62,6 +62,12 @@ status_t UniversalScroller::InitCheck()
 
 #define ENLIST_MSG() outList->AddItem(msg);
 
+#define SEND_MOUSE_UP( BUTTONS ) \
+	CREATE_MSG( B_MOUSE_UP ); \
+	msg->AddPoint("where",mousepoint); \
+	msg->AddInt32("modifiers",modifiers); \
+	msg->AddInt32("buttons", BUTTONS ); \
+	ENLIST_MSG();	
 
 filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 {
@@ -108,11 +114,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 			old_internal_buttons=0;
 			old_buttons=0;
 			
-			CREATE_MSG( B_MOUSE_UP );
-			msg->AddPoint("where",mousepoint);
-			msg->AddInt32("modifiers",modifiers);
-			msg->AddInt32("buttons",old_internal_buttons);
-			ENLIST_MSG();
+			SEND_MOUSE_UP( old_internal_buttons );
 		}
 		break;
 	
@@ -184,11 +186,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 					
 						if (new_clicks>0)
 						{
-							CREATE_MSG( B_MOUSE_UP );
-							msg->AddPoint("where",mousepoint);
-							msg->AddInt32("modifiers",modifiers);
-							msg->AddInt32("buttons",old_internal_buttons);
-							ENLIST_MSG();	
+							SEND_MOUSE_UP( old_internal_buttons );
 						}	
 					}
 					res=B_DISPATCH_MESSAGE;
@@ -298,11 +296,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 			{
 				if (buttons==0)
 				{
-					CREATE_MSG( B_MOUSE_UP );
-					msg->AddPoint("where",mousepoint);
-					msg->AddInt32("modifiers",modifiers);
-					msg->AddInt32("buttons",0);
-					ENLIST_MSG();	
+					SEND_MOUSE_UP( 0 );
 					res=B_DISPATCH_MESSAGE;
 					old_internal_buttons=0;
 				}
@@ -348,11 +342,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 					//for und if hier zuende
 					if (internal_buttons!=old_internal_buttons)
 					{
-						CREATE_MSG( B_MOUSE_UP );
-						msg->AddPoint("where",mousepoint);
-						msg->AddInt32("modifiers",modifiers);
-						msg->AddInt32("buttons",internal_buttons);
-						ENLIST_MSG();	
+						SEND_MOUSE_UP( old_internal_buttons );
 						res=B_DISPATCH_MESSAGE;
 						old_internal_buttons=internal_buttons;
 					}
@@ -377,12 +367,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 				{	
 					if (old_internal_buttons!=0)
 					{
-						CREATE_MSG( B_MOUSE_UP );
-						msg->AddPoint("where",mousepoint);
-						msg->AddInt32("modifiers",modifiers);
-						msg->AddInt32("buttons",0);
-						ENLIST_MSG();	
-					
+						SEND_MOUSE_UP( 0 );					
 						old_internal_buttons=0;
 					
 					}
