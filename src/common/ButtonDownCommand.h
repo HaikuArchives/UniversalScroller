@@ -7,7 +7,7 @@
 
 #include <SupportDefs.h>
 
-#define CMD_KIND_UNKNOWN_KIND -1
+enum ButtonDownCommandKind { unknown, button, key, cut, copy, paste, executable };
 
 #define CMD_MOUSE_BUTTON_INDEX_UNKNOWN -1
 
@@ -17,12 +17,13 @@ public:
 	ButtonDownCommand();	
 	ButtonDownCommand( const char * );	
 
-	int kind;
+	ButtonDownCommandKind kind;
 	int mouseButtonIndex;
 	int mouseButtonClicks;
 	const char * command;
 private:
-	void check_for_click( const char *, const char *, int, int );
+	void check_for_click( const char *, const char *, ButtonDownCommandKind, int, int );
+    void check_for_simple_command( const char *, const char *, ButtonDownCommandKind );
 
 };
 

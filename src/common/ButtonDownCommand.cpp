@@ -10,41 +10,65 @@
 #include "button.h"
 #include "ButtonDownCommand.h"
 
-void ButtonDownCommand::check_for_click( const char *cmd, const char *click, int index, int count )
+void ButtonDownCommand::check_for_click( const char *str, const char *cmd, ButtonDownCommandKind cmd_kind, int index, int count )
 {
-	if (strncasecmp( cmd, click, strlen( click ) )==0 )
+	if (strncasecmp( str, cmd, strlen( cmd ) ) == 0 )
 	{
+		kind = cmd_kind;
+		
 		mouseButtonIndex = index;
 
 		mouseButtonClicks = count;
-
-		if ( strlen( cmd ) != strlen( click ) )
+		if ( strlen( str ) != strlen( cmd ) )
 		{
-			mouseButtonClicks *= atoi( cmd + strlen( click ) );
+			mouseButtonClicks *= atoi( str + strlen( cmd ) );
 		}
 	}
 }
-	
-ButtonDownCommand::ButtonDownCommand(const char *cmd)
+
+void ButtonDownCommand::check_for_simple_command( const char *str, const char *cmd, ButtonDownCommandKind cmd_kind )
 {
-	kind = CMD_KIND_UNKNOWN_KIND;
+	if ( strcasecmp(str, cmd ) == 0 )
+	{
+		kind = cmd_kind;
+	}
+}
+
+	
+ButtonDownCommand::ButtonDownCommand(const char *str)
+{
+	kind = unknown;
 	mouseButtonIndex = CMD_MOUSE_BUTTON_INDEX_UNKNOWN;
 	mouseButtonClicks = 0;
-	command=cmd;
+	command=str;
 	
-	check_for_click( cmd, LEFT  , 0, 1 );
-	check_for_click( cmd, RIGHT , 1, 1 );
-	check_for_click( cmd, MIDDLE, 2, 1 );
+	check_for_click( str, LEFT  , button, 0, 1 );
+	check_for_click( str, RIGHT , button, 1, 1 );
+	check_for_click( str, MIDDLE, button, 2, 1 );
 
-	check_for_click( cmd, LEFTDBL  , 0, 2 );
-	check_for_click( cmd, RIGHTDBL , 1, 2 );
-	check_for_click( cmd, MIDDLEDBL, 2, 2 );
+	check_for_click( str, LEFTDBL  , button, 0, 2 );
+	check_for_click( str, RIGHTDBL , button, 1, 2 );
+	check_for_click( str, MIDDLEDBL, button, 2, 2 );
+	
+	check_for_simple_command( str, CUT  , cut   );
+	check_for_simple_command( str, COPY , copy  );
+	check_for_simple_command( str, PASTE, paste );
+	
+	if (strncasecmp( str, KEY, strlen( KEY ) ) == 0 )
+	{
+		kind = key;
+	}
+			
+	if ( kind == unknown )
+	{
+		kind = executable;
+	}
 	
 }
 
 ButtonDownCommand::ButtonDownCommand( )
 {
-	kind = CMD_KIND_UNKNOWN_KIND;
+	kind = unknown;
 	mouseButtonIndex = CMD_MOUSE_BUTTON_INDEX_UNKNOWN;
 	mouseButtonClicks = 0;
 	command=NULL;

@@ -100,7 +100,6 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
  int32 internal_buttons=0;
  static int32 old_internal_buttons=0;
  static int32 old_buttons=0;
- bool done;
  int i;
  int new_button_down;
  int new_clicks;
@@ -167,129 +166,129 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 
 			if ((cmdidx!=-1) && (!configuration.swallowclick[cmdidx]))
 			{
-				done=false;
-				new_button_down=-1;  
-				if (strncasecmp(configuration.buttonDownCommand[cmdidx].command,LEFT,strlen(LEFT))==0) {done=true;new_button_down=0;if (strlen(configuration.buttonDownCommand[cmdidx].command)==strlen(LEFT))new_clicks=1;else new_clicks=atoi(configuration.buttonDownCommand[cmdidx].command+strlen(LEFT));}
-				if (strncasecmp(configuration.buttonDownCommand[cmdidx].command,RIGHT,strlen(RIGHT))==0) {done=true;new_button_down=1;if (strlen(configuration.buttonDownCommand[cmdidx].command)==strlen(RIGHT))new_clicks=1;else new_clicks=atoi(configuration.buttonDownCommand[cmdidx].command+strlen(RIGHT));}
-				if (strncasecmp(configuration.buttonDownCommand[cmdidx].command,MIDDLE,strlen(MIDDLE))==0) {done=true;new_button_down=2;if (strlen(configuration.buttonDownCommand[cmdidx].command)==strlen(MIDDLE))new_clicks=1;else new_clicks=atoi(configuration.buttonDownCommand[cmdidx].command+strlen(MIDDLE));}
-				if (strncasecmp(configuration.buttonDownCommand[cmdidx].command,LEFTDBL,strlen(LEFTDBL))==0) {done=true;new_button_down=0;new_clicks=2;}
-				if (strncasecmp(configuration.buttonDownCommand[cmdidx].command,RIGHTDBL,strlen(RIGHTDBL))==0) {done=true;new_button_down=1;new_clicks=2;}
-				if (strncasecmp(configuration.buttonDownCommand[cmdidx].command,MIDDLEDBL,strlen(MIDDLEDBL))==0) {done=true;new_button_down=2;new_clicks=2;}
-				if (new_button_down!=-1)
+				int32 key_var=0;
+				int32 rawchar=0;
+				int8 numbytes=0,byte[3]={0,0,0};
+				switch ( configuration.buttonDownCommand[cmdidx].kind )
 				{
-					internal_buttons=old_internal_buttons|buttonval[new_button_down];
 
-					//zu langsam für doppelklick
-					if ( system_time() - mouseButtonDownLastTime[new_button_down]
-					     > configuration.doubleClickSpeed[new_button_down] )
-					{
-						click_count[new_button_down]=0;
-					}
-						
-					mouseButtonDownLastTime[new_button_down]=system_time();
-					
-					while (new_clicks>0)
-					{
-						click_count[new_button_down]++;
-						new_clicks--;
-						CREATE_MSG( B_MOUSE_DOWN );
-						msg->AddPoint("where",mouseButtonDownPosition);
-						msg->AddInt32("modifiers",modifiers);
-						msg->AddInt32("buttons",internal_buttons);
-						msg->AddInt32("clicks",click_count[new_button_down]);
-						ENLIST_MSG();
-					
-						if (new_clicks>0)
+					case button:
+					    new_button_down=configuration.buttonDownCommand[cmdidx].mouseButtonIndex;
+					    new_clicks=configuration.buttonDownCommand[cmdidx].mouseButtonClicks;
+					    
+						internal_buttons=old_internal_buttons|buttonval[new_button_down];
+
+						//zu langsam für doppelklick
+						if ( system_time() - mouseButtonDownLastTime[new_button_down]
+						     > configuration.doubleClickSpeed[new_button_down] )
 						{
-							SEND_MOUSE_UP( old_internal_buttons );
-						}	
-					}
-					res=B_DISPATCH_MESSAGE;
-				
-					old_internal_buttons=internal_buttons;
-				}
-				
-				if (strcasecmp(configuration.buttonDownCommand[cmdidx].command,CUT)==0)
-				{	CREATE_OLD_MSG( 'CCUT' );
-					ENLIST_MSG();	
-					done=true;
-					res=B_DISPATCH_MESSAGE;
-				}
-
-				if (strcasecmp(configuration.buttonDownCommand[cmdidx].command,COPY)==0)
-				{	CREATE_OLD_MSG( 'COPY' );
-					ENLIST_MSG();	
-					done=true;
-					res=B_DISPATCH_MESSAGE;
-				}
-
-				if (strcasecmp(configuration.buttonDownCommand[cmdidx].command,PASTE)==0)
-				{	CREATE_OLD_MSG( 'PSTE' );
-					ENLIST_MSG();	
-					done=true;
-					res=B_DISPATCH_MESSAGE;
-				}
-				
-				if (strncasecmp(configuration.buttonDownCommand[cmdidx].command,KEY,strlen(KEY))==0)
-				{
-//"KEY_SHIFT_OPTION_CONTROL_key_raw-char_byte_#bytes_byte0[_byte1[_byte2]]_bytesZ"
-					int32 key=0;
-					int32 rawchar=0;
-					int8 numbytes=0,byte[3]={0,0,0};
-					char *bytes;
-					i=strlen(KEY);
+							click_count[new_button_down]=0;
+						}
+							
+						mouseButtonDownLastTime[new_button_down]=system_time();
+						
+						while (new_clicks>0)
+						{
+							click_count[new_button_down]++;
+							new_clicks--;
+							CREATE_MSG( B_MOUSE_DOWN );
+							msg->AddPoint("where",mouseButtonDownPosition);
+							msg->AddInt32("modifiers",modifiers);
+							msg->AddInt32("buttons",internal_buttons);
+							msg->AddInt32("clicks",click_count[new_button_down]);
+							ENLIST_MSG();
+						
+							if (new_clicks>0)
+							{
+								SEND_MOUSE_UP( old_internal_buttons );
+							}	
+						}
+						res=B_DISPATCH_MESSAGE;
 					
-					
-					virtual_modifiers=0;
-					if (strncmp(configuration.buttonDownCommand[cmdidx].command+i,SHIFT,strlen(SHIFT))==0) {virtual_modifiers|=B_SHIFT_KEY;i+=strlen(SHIFT);}
-					if (strncmp(configuration.buttonDownCommand[cmdidx].command+i,OPTION,strlen(OPTION))==0) {virtual_modifiers|=B_OPTION_KEY;i+=strlen(OPTION);}
-					if (strncmp(configuration.buttonDownCommand[cmdidx].command+i,CONTROL,strlen(CONTROL))==0) {virtual_modifiers|=B_CONTROL_KEY;i+=strlen(CONTROL);}
+						old_internal_buttons=internal_buttons;
 
-					bytes=((char *)(configuration.buttonDownCommand[cmdidx].command))+i+1;
-					key=atoi(bytes); 			bytes=strstr(bytes,"_")+1;
-					rawchar=atoi(bytes);		bytes=strstr(bytes,"_")+1;
-					numbytes=atoi(bytes);		bytes=strstr(bytes,"_")+1;
-					for (i=0;i<numbytes;i++)
-						byte[i]=atoi(bytes);	bytes=strstr(bytes,"_")+1;
+						break;
+											
+					case key:
+						//format of option is: "KEY_SHIFT_OPTION_CONTROL_key_raw-char_byte_#bytes_byte0[_byte1[_byte2]]_bytesZ"
+						char *bytes;
+						i=strlen(KEY);
+						
+						
+						virtual_modifiers=0;
+						if (strncmp(configuration.buttonDownCommand[cmdidx].command+i,SHIFT,strlen(SHIFT))==0) {virtual_modifiers|=B_SHIFT_KEY;i+=strlen(SHIFT);}
+						if (strncmp(configuration.buttonDownCommand[cmdidx].command+i,OPTION,strlen(OPTION))==0) {virtual_modifiers|=B_OPTION_KEY;i+=strlen(OPTION);}
+						if (strncmp(configuration.buttonDownCommand[cmdidx].command+i,CONTROL,strlen(CONTROL))==0) {virtual_modifiers|=B_CONTROL_KEY;i+=strlen(CONTROL);}
+	
+						bytes=((char *)(configuration.buttonDownCommand[cmdidx].command))+i+1;
+						key_var=atoi(bytes); 			bytes=strstr(bytes,"_")+1;
+						rawchar=atoi(bytes);		bytes=strstr(bytes,"_")+1;
+						numbytes=atoi(bytes);		bytes=strstr(bytes,"_")+1;
+						for (i=0;i<numbytes;i++)
+							byte[i]=atoi(bytes);	bytes=strstr(bytes,"_")+1;
+	
+						CREATE_MSG( B_MODIFIERS_CHANGED );
+						msg->AddInt32("modifiers",virtual_modifiers);
+						msg->AddInt32("be:old_modifiers",modifiers);
+						ENLIST_MSG();	
+	
+						CREATE_MSG( B_KEY_DOWN );
+						msg->AddInt32("modifiers",virtual_modifiers);
+						msg->AddInt32("key",key_var);
+						msg->AddInt32("raw_char",rawchar);
+						for (i=0;i<numbytes;i++)
+							msg->AddInt8("byte",byte[i]);
+						msg->AddString("bytes",bytes);
+						msg->AddInt8("states",0);
+						ENLIST_MSG();	
+	
+						CREATE_MSG( B_KEY_UP );
+						msg->AddInt32("modifiers",virtual_modifiers);
+						msg->AddInt32("key",key_var);
+						msg->AddInt32("raw_char",rawchar);
+						for (i=0;i<numbytes;i++)
+							msg->AddInt8("byte",byte[i]);
+						msg->AddString("bytes",bytes);
+						msg->AddInt8("states",0);
+						ENLIST_MSG();	
+	
+						CREATE_MSG( B_MODIFIERS_CHANGED );
+						msg->AddInt32("modifiers",modifiers);
+						msg->AddInt32("be:old_modifiers",virtual_modifiers);
+						ENLIST_MSG();	
+	
+						res=B_DISPATCH_MESSAGE;
+	
+						break;
+						
+					case cut:
+						CREATE_OLD_MSG( 'CCUT' );
+						ENLIST_MSG();	
+						res=B_DISPATCH_MESSAGE;
+						
+						break;	
 
-					CREATE_MSG( B_MODIFIERS_CHANGED );
-					msg->AddInt32("modifiers",virtual_modifiers);
-					msg->AddInt32("be:old_modifiers",modifiers);
-					ENLIST_MSG();	
+					case copy:
+						CREATE_OLD_MSG( 'COPY' );
+						ENLIST_MSG();	
+						res=B_DISPATCH_MESSAGE;
+				
+						break;
 
-					CREATE_MSG( B_KEY_DOWN );
-					msg->AddInt32("modifiers",virtual_modifiers);
-					msg->AddInt32("key",key);
-					msg->AddInt32("raw_char",rawchar);
-					for (i=0;i<numbytes;i++)
-						msg->AddInt8("byte",byte[i]);
-					msg->AddString("bytes",bytes);
-					msg->AddInt8("states",0);
-					ENLIST_MSG();	
-
-					CREATE_MSG( B_KEY_UP );
-					msg->AddInt32("modifiers",virtual_modifiers);
-					msg->AddInt32("key",key);
-					msg->AddInt32("raw_char",rawchar);
-					for (i=0;i<numbytes;i++)
-						msg->AddInt8("byte",byte[i]);
-					msg->AddString("bytes",bytes);
-					msg->AddInt8("states",0);
-					ENLIST_MSG();	
-
-					CREATE_MSG( B_MODIFIERS_CHANGED );
-					msg->AddInt32("modifiers",modifiers);
-					msg->AddInt32("be:old_modifiers",virtual_modifiers);
-					ENLIST_MSG();	
-
-					res=B_DISPATCH_MESSAGE;
-
-					done=true;
+					case paste:
+						CREATE_OLD_MSG( 'PSTE' );
+						ENLIST_MSG();	
+						res=B_DISPATCH_MESSAGE;
+				
+						break;
+						
+					case executable:
+						TMsystem(configuration.buttonDownCommand[cmdidx].command);
+						
+						break;		
 				}
-				if (!done)
-				{
-					TMsystem(configuration.buttonDownCommand[cmdidx].command);
-				}
+				 
+				
 			}
 			old_buttons=buttons;
 		}
