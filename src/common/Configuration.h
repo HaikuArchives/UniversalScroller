@@ -7,7 +7,7 @@
 
 #include <SupportDefs.h>
 
-#define CMD_LEN 255
+#include "ButtonDownCommand.h"
 
 class Configuration {
 public:
@@ -15,8 +15,8 @@ public:
 
 	int minScroll;	
 	int doubleClickSpeed[3];
-	char cmd[9][CMD_LEN+1];
-	
+	ButtonDownCommand buttonDownCommand[9];
+		
 	float factorX[2];
 	float factorY[2];
 	bool factorsforwheel;

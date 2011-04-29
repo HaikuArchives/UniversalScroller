@@ -169,12 +169,12 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 			{
 				done=false;
 				new_button_down=-1;  
-				if (strncasecmp(configuration.cmd[cmdidx],LEFT,strlen(LEFT))==0) {done=true;new_button_down=0;if (strlen(configuration.cmd[cmdidx])==strlen(LEFT))new_clicks=1;else new_clicks=atoi(configuration.cmd[cmdidx]+strlen(LEFT));}
-				if (strncasecmp(configuration.cmd[cmdidx],RIGHT,strlen(RIGHT))==0) {done=true;new_button_down=1;if (strlen(configuration.cmd[cmdidx])==strlen(RIGHT))new_clicks=1;else new_clicks=atoi(configuration.cmd[cmdidx]+strlen(RIGHT));}
-				if (strncasecmp(configuration.cmd[cmdidx],MIDDLE,strlen(MIDDLE))==0) {done=true;new_button_down=2;if (strlen(configuration.cmd[cmdidx])==strlen(MIDDLE))new_clicks=1;else new_clicks=atoi(configuration.cmd[cmdidx]+strlen(MIDDLE));}
-				if (strncasecmp(configuration.cmd[cmdidx],LEFTDBL,strlen(LEFTDBL))==0) {done=true;new_button_down=0;new_clicks=2;}
-				if (strncasecmp(configuration.cmd[cmdidx],RIGHTDBL,strlen(RIGHTDBL))==0) {done=true;new_button_down=1;new_clicks=2;}
-				if (strncasecmp(configuration.cmd[cmdidx],MIDDLEDBL,strlen(MIDDLEDBL))==0) {done=true;new_button_down=2;new_clicks=2;}
+				if (strncasecmp(configuration.buttonDownCommand[cmdidx].command,LEFT,strlen(LEFT))==0) {done=true;new_button_down=0;if (strlen(configuration.buttonDownCommand[cmdidx].command)==strlen(LEFT))new_clicks=1;else new_clicks=atoi(configuration.buttonDownCommand[cmdidx].command+strlen(LEFT));}
+				if (strncasecmp(configuration.buttonDownCommand[cmdidx].command,RIGHT,strlen(RIGHT))==0) {done=true;new_button_down=1;if (strlen(configuration.buttonDownCommand[cmdidx].command)==strlen(RIGHT))new_clicks=1;else new_clicks=atoi(configuration.buttonDownCommand[cmdidx].command+strlen(RIGHT));}
+				if (strncasecmp(configuration.buttonDownCommand[cmdidx].command,MIDDLE,strlen(MIDDLE))==0) {done=true;new_button_down=2;if (strlen(configuration.buttonDownCommand[cmdidx].command)==strlen(MIDDLE))new_clicks=1;else new_clicks=atoi(configuration.buttonDownCommand[cmdidx].command+strlen(MIDDLE));}
+				if (strncasecmp(configuration.buttonDownCommand[cmdidx].command,LEFTDBL,strlen(LEFTDBL))==0) {done=true;new_button_down=0;new_clicks=2;}
+				if (strncasecmp(configuration.buttonDownCommand[cmdidx].command,RIGHTDBL,strlen(RIGHTDBL))==0) {done=true;new_button_down=1;new_clicks=2;}
+				if (strncasecmp(configuration.buttonDownCommand[cmdidx].command,MIDDLEDBL,strlen(MIDDLEDBL))==0) {done=true;new_button_down=2;new_clicks=2;}
 				if (new_button_down!=-1)
 				{
 					internal_buttons=old_internal_buttons|buttonval[new_button_down];
@@ -209,28 +209,28 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 					old_internal_buttons=internal_buttons;
 				}
 				
-				if (strcasecmp(configuration.cmd[cmdidx],CUT)==0)
+				if (strcasecmp(configuration.buttonDownCommand[cmdidx].command,CUT)==0)
 				{	CREATE_OLD_MSG( 'CCUT' );
 					ENLIST_MSG();	
 					done=true;
 					res=B_DISPATCH_MESSAGE;
 				}
 
-				if (strcasecmp(configuration.cmd[cmdidx],COPY)==0)
+				if (strcasecmp(configuration.buttonDownCommand[cmdidx].command,COPY)==0)
 				{	CREATE_OLD_MSG( 'COPY' );
 					ENLIST_MSG();	
 					done=true;
 					res=B_DISPATCH_MESSAGE;
 				}
 
-				if (strcasecmp(configuration.cmd[cmdidx],PASTE)==0)
+				if (strcasecmp(configuration.buttonDownCommand[cmdidx].command,PASTE)==0)
 				{	CREATE_OLD_MSG( 'PSTE' );
 					ENLIST_MSG();	
 					done=true;
 					res=B_DISPATCH_MESSAGE;
 				}
 				
-				if (strncasecmp(configuration.cmd[cmdidx],KEY,strlen(KEY))==0)
+				if (strncasecmp(configuration.buttonDownCommand[cmdidx].command,KEY,strlen(KEY))==0)
 				{
 //"KEY_SHIFT_OPTION_CONTROL_key_raw-char_byte_#bytes_byte0[_byte1[_byte2]]_bytesZ"
 					int32 key=0;
@@ -241,11 +241,11 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 					
 					
 					virtual_modifiers=0;
-					if (strncmp(configuration.cmd[cmdidx]+i,SHIFT,strlen(SHIFT))==0) {virtual_modifiers|=B_SHIFT_KEY;i+=strlen(SHIFT);}
-					if (strncmp(configuration.cmd[cmdidx]+i,OPTION,strlen(OPTION))==0) {virtual_modifiers|=B_OPTION_KEY;i+=strlen(OPTION);}
-					if (strncmp(configuration.cmd[cmdidx]+i,CONTROL,strlen(CONTROL))==0) {virtual_modifiers|=B_CONTROL_KEY;i+=strlen(CONTROL);}
+					if (strncmp(configuration.buttonDownCommand[cmdidx].command+i,SHIFT,strlen(SHIFT))==0) {virtual_modifiers|=B_SHIFT_KEY;i+=strlen(SHIFT);}
+					if (strncmp(configuration.buttonDownCommand[cmdidx].command+i,OPTION,strlen(OPTION))==0) {virtual_modifiers|=B_OPTION_KEY;i+=strlen(OPTION);}
+					if (strncmp(configuration.buttonDownCommand[cmdidx].command+i,CONTROL,strlen(CONTROL))==0) {virtual_modifiers|=B_CONTROL_KEY;i+=strlen(CONTROL);}
 
-					bytes=configuration.cmd[cmdidx]+i+1;
+					bytes=((char *)(configuration.buttonDownCommand[cmdidx].command))+i+1;
 					key=atoi(bytes); 			bytes=strstr(bytes,"_")+1;
 					rawchar=atoi(bytes);		bytes=strstr(bytes,"_")+1;
 					numbytes=atoi(bytes);		bytes=strstr(bytes,"_")+1;
@@ -288,7 +288,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 				}
 				if (!done)
 				{
-					TMsystem(configuration.cmd[cmdidx]);
+					TMsystem(configuration.buttonDownCommand[cmdidx].command);
 				}
 			}
 			old_buttons=buttons;
@@ -329,25 +329,25 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 							if (i==5) strcpy(str,RIGHTDBL);
 							if
 							(!( 
-							((((buttons&B_PRIMARY_MOUSE_BUTTON)==B_PRIMARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.cmd[0])==0)))
+							((((buttons&B_PRIMARY_MOUSE_BUTTON)==B_PRIMARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.buttonDownCommand[0].command)==0)))
 							||
-							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.cmd[1])==0)))
+							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[1].command)==0)))
 							||
-							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.cmd[2])==0)))
+							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[2].command)==0)))
 
 							||
-							((((buttons&B_SECONDARY_MOUSE_BUTTON)==B_SECONDARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.cmd[3])==0)))
+							((((buttons&B_SECONDARY_MOUSE_BUTTON)==B_SECONDARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.buttonDownCommand[3].command)==0)))
 							||
-							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.cmd[4])==0)))
+							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[4].command)==0)))
 							||
-							((((buttons&(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.cmd[5])==0)))
+							((((buttons&(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[5].command)==0)))
 	
 							||
-							((((buttons&B_TERTIARY_MOUSE_BUTTON)==B_TERTIARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.cmd[6])==0)))
+							((((buttons&B_TERTIARY_MOUSE_BUTTON)==B_TERTIARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.buttonDownCommand[6].command)==0)))
 							||
-							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.cmd[7])==0)))
+							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[7].command)==0)))
 							||
-							((((buttons&(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.cmd[8])==0)))
+							((((buttons&(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[8].command)==0)))
 							))
 							{
 							internal_buttons=(internal_buttons-buttonval[i]);

@@ -26,6 +26,7 @@ TYPE= SHARED
 #	in folder names do not work well with this makefile.
 SRCS= \
 	UniversalScroller.cpp \
+	../common/ButtonDownCommand.cpp \
 	../common/Configuration.cpp \
 	instantiator.cpp
 #

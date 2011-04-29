@@ -24,13 +24,13 @@
 #ifndef TM_SYSTEM
 #define TM_SYSTEM
 
-int32 TMsystemthreadproc(char *command)
+int32 TMsystemthreadproc(const char *command)
 {
 	system(command);
 	return B_OK;
 }
 
-void TMsystem(char *incommand)
+void TMsystem(const char *incommand)
 {
 	char command[255];
 	strcpy(command,incommand);
