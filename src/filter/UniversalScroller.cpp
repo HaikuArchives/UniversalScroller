@@ -88,8 +88,9 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
  // msg holds the message that is going to be injected into outList
  BMessage *msg;
 
+ // timestamp when the primary, secondare, tertiary mouse button was clicked last time
+ static int64 mouseButtonDownLastTime[3]={0,0,0};
  
- static int64 last_click_time[3]={0,0,0};
  static int64 click_count[3]={0,0,0};
  float deltax=0,deltay=0;
  filter_result res = B_DISPATCH_MESSAGE;
@@ -179,10 +180,13 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 					internal_buttons=old_internal_buttons|buttonval[new_button_down];
 
 					//zu langsam für doppelklick
-					if (system_time()-last_click_time[new_button_down]>configuration.doubleClickSpeed[new_button_down])
+					if ( system_time() - mouseButtonDownLastTime[new_button_down]
+					     > configuration.doubleClickSpeed[new_button_down] )
+					{
 						click_count[new_button_down]=0;
+					}
 						
-					last_click_time[new_button_down]=system_time();
+					mouseButtonDownLastTime[new_button_down]=system_time();
 					
 					while (new_clicks>0)
 					{
