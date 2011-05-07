@@ -108,24 +108,10 @@ USPrefWindow::USPrefWindow(BRect frame)
 {
 	BView *aView;
 	BTabView *tabview;
-	BTab *tab;
-	int i;
-	int handle;
-	char str[64];
-	bool boolval;
+	BTab *tab;		
 
-		popupmenu=new BPopUpMenu("");
-		popupmenu->AddItem(new BMenuItem("left down",new BMessage(CHANGEEVENT_MSG+0)));                           
-		popupmenu->AddItem(new BMenuItem("left down and right interclick",new BMessage(CHANGEEVENT_MSG+1)));
-		popupmenu->AddItem(new BMenuItem("left down and middle interclick",new BMessage(CHANGEEVENT_MSG+2)));
-		popupmenu->AddItem(new BMenuItem("right down",new BMessage(CHANGEEVENT_MSG+3)));
-		popupmenu->AddItem(new BMenuItem("right down and left interclick",new BMessage(CHANGEEVENT_MSG+4)));
-		popupmenu->AddItem(new BMenuItem("right down and middle interclick",new BMessage(CHANGEEVENT_MSG+5)));
-		popupmenu->AddItem(new BMenuItem("middle down",new BMessage(CHANGEEVENT_MSG+6)));
-		popupmenu->AddItem(new BMenuItem("middle down and left interclick",new BMessage(CHANGEEVENT_MSG+7)));
-		popupmenu->AddItem(new BMenuItem("middle down and right interclick",new BMessage(CHANGEEVENT_MSG+8)));
-
-	frame.left=frame.top=0;
+	frame.left=0;
+	frame.top=0;
 	frame.bottom=300;
 	frame.right=630;
 		
@@ -140,8 +126,6 @@ USPrefWindow::USPrefWindow(BRect frame)
 	aView=new BView(frame,"scrollview", B_FOLLOW_ALL, 0 );
     aView->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
 
-	BStringView *stringView;
-	
 	aView->AddChild( new BStringView( BRect(0,5,210,25), NULL, "Use UniversalScrolling for") );
 	aView->AddChild( new BStringView( BRect(0,25,210,45), NULL, "those combinations of buttons:") );
 
@@ -275,7 +259,7 @@ USPrefWindow::USPrefWindow(BRect frame)
 	AddChild(tabview);
 
     // Button Panel at bottom ----------------------------------------------------------------
-	BView *ButtonPanelBottom=new BView(BRect(0,300,630,325), NULL, B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM, NULL );
+	BView *ButtonPanelBottom=new BView(BRect(0,300,630,325), NULL, B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM, 0 );
     ButtonPanelBottom->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
        	
 	ButtonPanelBottom->AddChild(new BButton(BRect(0,0,60,25), NULL,"Cancel",new BMessage(MSG_CANCEL)));
@@ -347,82 +331,16 @@ bool USPrefWindow::QuitRequested()
        return(true);
 }
 
-
-void USPrefWindow::MessageReceived(BMessage* message)
+static void okClick(void)
 {
-	char str[63];
-	long pos;
-	int i;
-	BMenuItem *item;
 	bool boolval;
 
-
-
-	switch(message->what)
-	{
-/*		case MSG_README:
-			sprintf(str,"StyledEdit %sreadme.txt",path);
-			system(str);
-		break;
-*/
-		case CHANGEEVENT_MSG+0:
-		case CHANGEEVENT_MSG+1:
-		case CHANGEEVENT_MSG+2:
-		case CHANGEEVENT_MSG+3:
-		case CHANGEEVENT_MSG+4:
-		case CHANGEEVENT_MSG+5:
-		case CHANGEEVENT_MSG+6:
-		case CHANGEEVENT_MSG+7:
-		case CHANGEEVENT_MSG+8:
-			downCommandChanger( message->what-CHANGEEVENT_MSG );
-		break;
+			long i;
 		
-		case LEFT_MSG:
-			eventcommand->SetText(LEFT);
-		break;
-		case MIDDLE_MSG:
-			eventcommand->SetText(MIDDLE);
-		break;
-		case RIGHT_MSG:
-			eventcommand->SetText(RIGHT);
-		break;
-		case LEFTDBL_MSG:
-			eventcommand->SetText(LEFTDBL);
-		break;
-		case MIDDLEDBL_MSG:
-			eventcommand->SetText(MIDDLEDBL);
-		break;
-		case RIGHTDBL_MSG:
-			eventcommand->SetText(RIGHTDBL);
-		break;
-		case WORKSPACEM_MSG:
-			eventcommand->SetText("workspace -");
-		break;
-		case WORKSPACE_MSG:
-			sprintf(str,"workspace %s",workspaceView->Text());
-			eventcommand->SetText(str);
-		break;
-		case WORKSPACEP_MSG:
-			eventcommand->SetText("workspace +");
-		break;
-		case COPY_MSG:
-			eventcommand->SetText(COPY);
-		break;
-		case PASTE_MSG:
-			eventcommand->SetText(PASTE);
-		break;
-		case CUT_MSG:
-			eventcommand->SetText(CUT);
-		break;
 		
-		case MSG_OK:
-			long i,j;
-			int handle;
-			float val;
-			int vz;
-
+		return;	
 			
-			handle=open("/boot/home/config/add-ons/input_server/filters/UniversalScroller",O_RDWR);
+			int handle=open("/boot/home/config/add-ons/input_server/filters/UniversalScroller",O_RDWR);
 
 
 		swallowclick[commandidx]=(swallowClickView->Value()==B_CONTROL_ON);
@@ -473,10 +391,69 @@ void USPrefWindow::MessageReceived(BMessage* message)
 	    
 			close(handle);
 			if (restartinputserver->Value()==B_CONTROL_ON) system("/system/servers/input_server -q");
+}
 
+void USPrefWindow::MessageReceived(BMessage* message)
+{
+	
+	switch(message->what)
+	{
+		case CHANGEEVENT_MSG+0:
+		case CHANGEEVENT_MSG+1:
+		case CHANGEEVENT_MSG+2:
+		case CHANGEEVENT_MSG+3:
+		case CHANGEEVENT_MSG+4:
+		case CHANGEEVENT_MSG+5:
+		case CHANGEEVENT_MSG+6:
+		case CHANGEEVENT_MSG+7:
+		case CHANGEEVENT_MSG+8:
+			downCommandChanger( message->what-CHANGEEVENT_MSG );
+			break;
+		
+		case LEFT_MSG:
+			eventcommand->SetText(LEFT);
+			break;
+
+		case MIDDLE_MSG:
+			eventcommand->SetText(MIDDLE);
+			break;
+
+		case RIGHT_MSG:
+			eventcommand->SetText(RIGHT);
+			break;
+
+		case LEFTDBL_MSG:
+			eventcommand->SetText(LEFTDBL);
+			break;
+
+		case MIDDLEDBL_MSG:
+			eventcommand->SetText(MIDDLEDBL);
+			break;
+
+		case RIGHTDBL_MSG:
+			eventcommand->SetText(RIGHTDBL);
+			break;
+	
+		case COPY_MSG:
+			eventcommand->SetText(COPY);
+			break;
+
+		case PASTE_MSG:
+			eventcommand->SetText(PASTE);
+			break;
+
+		case CUT_MSG:
+			eventcommand->SetText(CUT);
+			break;
+		
+		case MSG_OK:
+			okClick();
+			QuitRequested();
+			break;
+	
 		case MSG_CANCEL:
 			QuitRequested();
-		break;
+			break;
 
 		default:
 			BWindow::MessageReceived(message);
