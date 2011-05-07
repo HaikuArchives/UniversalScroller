@@ -234,7 +234,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 	
 		case B_MOUSE_WHEEL_CHANGED:
 			float hfloat;
-		  	if ((!physicalIsAltKeyDown_s) && ((physicalIsShiftKeyDown_s) || (configuration.factorsforwheel)))
+		  	if ((!physicalIsAltKeyDown_s) && ((physicalIsShiftKeyDown_s) || (configuration.useWheelFactors)))
 		  	{                               
 				float deltaX, deltaY;
  		  		message->FindFloat("be:wheel_delta_x",&deltaX);
@@ -251,10 +251,10 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 					deltaY   = tmpFloat;
 				}
 						
-			  	if (configuration.factorsforwheel) 
+			  	if (configuration.useWheelFactors) 
 			  	{
-			  		deltaX *= configuration.factorX[ physicalIsControlKeyDown_s ? 1 : 0 ];
-			 		deltaY *= configuration.factorY[ physicalIsControlKeyDown_s ? 1 : 0 ];
+			  		deltaX *= configuration.wheelFactorX[ physicalIsControlKeyDown_s ? 1 : 0 ];
+			 		deltaY *= configuration.wheelFactorY[ physicalIsControlKeyDown_s ? 1 : 0 ];
 			 	}
 
 				CREATE_MSG( B_MOUSE_WHEEL_CHANGED );
@@ -274,7 +274,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 				// cmdidx is the index of the interclicked command
 				int cmdidx = Configuration::getButtonDownIndex( physicalButtonsDown_s, physicalButtonsDown );
 
-				if ( ( cmdidx != -1 ) && ( ! configuration.swallowclick[cmdidx] ) )
+				if ( ( cmdidx != -1 ) && ( ! configuration.swallowClick[cmdidx] ) )
 				{			
 					int virtualButtonToPressIdx=0;	
 					int virtualButtonToPressClickCount=0;
@@ -399,12 +399,12 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 			{
 			  	message->FindInt32("buttons",&physicalButtonsDown);
 				message->FindInt32("modifiers",&physicalModifiers);
-				if (configuration.scrollmousedown[ physicalButtonsDown & SCROLL_MOUSE_DOWN_MASK ])
+				if (configuration.scrollWhenMouseDown[ physicalButtonsDown & SCROLL_MOUSE_DOWN_MASK ])
 				{	
 					message->FindPoint("where",&physicalPosition_s);
 	
- 					float deltaX = configuration.factorX[physicalIsControlKeyDown_s?1:0] * (physicalPosition_s.x-physicalButtonDownPosition_s.x);
-					float deltaY = configuration.factorY[physicalIsControlKeyDown_s?1:0] * (physicalPosition_s.y-physicalButtonDownPosition_s.y);
+ 					float deltaX = configuration.wheelFactorX[physicalIsControlKeyDown_s?1:0] * (physicalPosition_s.x-physicalButtonDownPosition_s.x);
+					float deltaY = configuration.wheelFactorY[physicalIsControlKeyDown_s?1:0] * (physicalPosition_s.y-physicalButtonDownPosition_s.y);
 	
 					if ((deltaX*deltaX>configuration.minScroll) || (deltaY*deltaY>configuration.minScroll))
 					{	

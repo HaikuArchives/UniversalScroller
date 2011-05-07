@@ -46,8 +46,8 @@
 #include "Configuration.h"
 #include "MainWindow.h"
 
-BTextControl *factorXView[2],*factorYView[2];
-BCheckBox *factorsforwheelView,*mousedownView[8],*swallowClickView;
+BTextControl *wheelFactorXView[2],*wheelFactorYView[2];
+BCheckBox *useWheelFactorsView,*mousedownView[8],*swallowClickView;
 BTextControl *eventcommand;
 
 BTextControl *minimumMView,*commandView[2];
@@ -55,10 +55,10 @@ BCheckBox *restartinputserver;
 
 #define MAX_CONF_STR 250
 
-float factorX[2],factorY[2];
+float wheelFactorX[2],wheelFactorY[2];
 int minimumM, passthrough,passthroughasdouble;
 char command[9][MAX_COMMAND_LENGTH+1];
-bool factorsforwheel,swallowclick[9];
+bool useWheelFactors,swallowClick[9];
 int primdbltime,secdbltime,tertdbltime;
 
 int commandidx=0;
@@ -121,28 +121,28 @@ MainWindow::MainWindow(BRect frame)
 	view=new BView(tabViewFrame,"speedview",0,0);
     view->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
 
-	factorsforwheelView=new BCheckBox(BRect(0,5,500,25), NULL, "Use below factors for scroll-wheels",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	view->AddChild(factorsforwheelView);
+	useWheelFactorsView=new BCheckBox(BRect(0,5,500,25), NULL, "Use below factors for scroll-wheels",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	view->AddChild(useWheelFactorsView);
 
 	view->AddChild(new BStringView(BRect(20,35,500,55), NULL, "normal Scroll-Speed"));
 
-	factorXView[0]=new BTextControl(BRect(40,55,200,75), NULL, "Factor X","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	factorXView[0]->SetDivider(70);
-	view->AddChild(factorXView[0]);
+	wheelFactorXView[0]=new BTextControl(BRect(40,55,200,75), NULL, "Factor X","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	wheelFactorXView[0]->SetDivider(70);
+	view->AddChild(wheelFactorXView[0]);
 
-	factorYView[0]=new BTextControl(BRect(40,75,200,95), NULL, "Factor Y","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	factorYView[0]->SetDivider(70);
-	view->AddChild(factorYView[0]);
+	wheelFactorYView[0]=new BTextControl(BRect(40,75,200,95), NULL, "Factor Y","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	wheelFactorYView[0]->SetDivider(70);
+	view->AddChild(wheelFactorYView[0]);
 
 	view->AddChild(new BStringView(BRect(20,105,500,125), NULL, "fast Scroll-Speed"));
 
-	factorXView[1]=new BTextControl(BRect(40,125,200,145), NULL, "Factor X","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	factorXView[1]->SetDivider(70);
-	view->AddChild(factorXView[1]);
+	wheelFactorXView[1]=new BTextControl(BRect(40,125,200,145), NULL, "Factor X","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	wheelFactorXView[1]->SetDivider(70);
+	view->AddChild(wheelFactorXView[1]);
 
-	factorYView[1]=new BTextControl(BRect(40,145,200,165), NULL, "Factor Y","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	factorYView[1]->SetDivider(70);
-	view->AddChild(factorYView[1]);
+	wheelFactorYView[1]=new BTextControl(BRect(40,145,200,165), NULL, "Factor Y","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	wheelFactorYView[1]->SetDivider(70);
+	view->AddChild(wheelFactorYView[1]);
 
 	tab=new BTab();
 	tabview->AddTab(view,tab);
@@ -221,7 +221,7 @@ MainWindow::MainWindow(BRect frame)
 
 static void downCommandChanger( int commandidx )
 {
-	swallowClickView->SetValue(swallowclick[commandidx]?B_CONTROL_ON:B_CONTROL_OFF);
+	swallowClickView->SetValue(swallowClick[commandidx]?B_CONTROL_ON:B_CONTROL_OFF);
 	eventcommand->SetText(command[commandidx]);
 }
 
@@ -234,7 +234,7 @@ void MainWindow::updateControlsFromConfiguration( void )
 	
 	for (i=1;i<8;i++)
     {
-		mousedownView[i]->SetValue( configuration.scrollmousedown[i] ? B_CONTROL_ON : B_CONTROL_OFF );
+		mousedownView[i]->SetValue( configuration.scrollWhenMouseDown[i] ? B_CONTROL_ON : B_CONTROL_OFF );
 	}
 
    	snprintf(str, MAX_CONF_STR, "%d", (int) sqrt(configuration.minScroll) );
@@ -242,25 +242,25 @@ void MainWindow::updateControlsFromConfiguration( void )
     
 	// Scroll Speed -----------------------------------------
 
-	factorsforwheelView->SetValue( configuration.factorsforwheel ? B_CONTROL_ON : B_CONTROL_OFF );
+	useWheelFactorsView->SetValue( configuration.useWheelFactors ? B_CONTROL_ON : B_CONTROL_OFF );
 
-   	snprintf(str, MAX_CONF_STR, "%.2f", configuration.factorX[0] );
-    factorXView[0]->SetText(str);
+   	snprintf(str, MAX_CONF_STR, "%.2f", configuration.wheelFactorX[0] );
+    wheelFactorXView[0]->SetText(str);
 
-   	snprintf(str, MAX_CONF_STR, "%.2f", configuration.factorY[0] );
-    factorYView[0]->SetText(str);
+   	snprintf(str, MAX_CONF_STR, "%.2f", configuration.wheelFactorY[0] );
+    wheelFactorYView[0]->SetText(str);
 
-   	snprintf(str, MAX_CONF_STR, "%.2f", configuration.factorX[1] );
-    factorXView[1]->SetText(str);
+   	snprintf(str, MAX_CONF_STR, "%.2f", configuration.wheelFactorX[1] );
+    wheelFactorXView[1]->SetText(str);
 
-   	snprintf(str, MAX_CONF_STR, "%.2f", configuration.factorY[1] );
-    factorYView[1]->SetText(str);
+   	snprintf(str, MAX_CONF_STR, "%.2f", configuration.wheelFactorY[1] );
+    wheelFactorYView[1]->SetText(str);
 
    // Clicks ------------------------------------------------
    
 	for (i=0;i<9;i++)
     {
-		swallowclick[i]=configuration.swallowclick[i];
+		swallowClick[i]=configuration.swallowClick[i];
 		strncpy( command[i], configuration.buttonDownCommand[i].command, MAX_COMMAND_LENGTH );
 	}
 	downCommandChanger(0);
@@ -284,11 +284,11 @@ static void okClick(void)
 			int handle=open("/boot/home/config/add-ons/input_server/filters/UniversalScroller",O_RDWR);
 
 
-		swallowclick[commandidx]=(swallowClickView->Value()==B_CONTROL_ON);
+		swallowClick[commandidx]=(swallowClickView->Value()==B_CONTROL_ON);
 
 
     	//lseek(handle,OFFSETFACTORSFORWHEEL,0);
-		boolval=(factorsforwheelView->Value()==B_CONTROL_ON);
+		boolval=(useWheelFactorsView->Value()==B_CONTROL_ON);
 		write(handle,&boolval,sizeof(bool));
 
 		for (i=1;i<8;i++)
@@ -299,29 +299,29 @@ static void okClick(void)
 		}
 		for (i=1;i<8;i++)
 	    {
-	    	//lseek(handle,OFFSETSWALLOWCLICK+i,0);
-			write(handle,&swallowclick[i],sizeof(bool));
+	    	//lseek(handle,OFFSETswallowClick+i,0);
+			write(handle,&swallowClick[i],sizeof(bool));
 		}
 		
-		sscanf(factorXView[0]->Text(),"%f",&factorX[0]);
-		sscanf(factorYView[0]->Text(),"%f",&factorY[0]);
-		sscanf(factorXView[1]->Text(),"%f",&factorX[1]);
-		sscanf(factorYView[1]->Text(),"%f",&factorY[1]);
+		sscanf(wheelFactorXView[0]->Text(),"%f",&wheelFactorX[0]);
+		sscanf(wheelFactorYView[0]->Text(),"%f",&wheelFactorY[0]);
+		sscanf(wheelFactorXView[1]->Text(),"%f",&wheelFactorX[1]);
+		sscanf(wheelFactorYView[1]->Text(),"%f",&wheelFactorY[1]);
 		sscanf(minimumMView->Text(),"%u",&minimumM);
 		minimumM=minimumM*minimumM;
 
 
     	//lseek(handle,OFFSETFACTORX0,0);
-		write(handle,&factorX[0],sizeof(float));
+		write(handle,&wheelFactorX[0],sizeof(float));
 
     	//lseek(handle,OFFSETFACTORY0,0);
-		write(handle,&factorY[0],sizeof(float));
+		write(handle,&wheelFactorY[0],sizeof(float));
 
     	//lseek(handle,OFFSETFACTORX1,0);
-		write(handle,&factorX[1],sizeof(float));
+		write(handle,&wheelFactorX[1],sizeof(float));
 
     	//lseek(handle,OFFSETFACTORY1,0);
-		write(handle,&factorY[1],sizeof(float));
+		write(handle,&wheelFactorY[1],sizeof(float));
 
 		//lseek(handle,OFFSETMINIMUM,0);
 		write(handle,&minimumM,sizeof(int));

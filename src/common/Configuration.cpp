@@ -19,11 +19,11 @@ Configuration::Configuration()
 	this->doubleClickSpeed[1]=250000;
 	this->doubleClickSpeed[2]=250000;
 
-	this->factorX[0]= 1.0;
-	this->factorY[0]= 1.0;
-	this->factorX[1]=10.0;
-	this->factorY[1]=10.0;
-	factorsforwheel=true;
+	this->wheelFactorX[0]= 1.0;
+	this->wheelFactorY[0]= 1.0;
+	this->wheelFactorX[1]=10.0;
+	this->wheelFactorY[1]=10.0;
+	useWheelFactors=true;
 
 	i=0;
 	buttonDownCommand[i++] = ButtonDownCommand( LEFT   );
@@ -38,12 +38,12 @@ Configuration::Configuration()
 	
 	for ( i=0; i<8; i++ )
 	{
-		scrollmousedown[i] = (i>3);
+		scrollWhenMouseDown[i] = (i>3);
 	}
 
 	for ( i=0; i<9; i++ )
 	{
-		swallowclick[i] = (i>3);
+		swallowClick[i] = (i>3);
 	}
 
 }
