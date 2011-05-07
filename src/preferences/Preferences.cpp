@@ -1,4 +1,3 @@
-#include "offsets.h"
 #include <Application.h>
 #include <Window.h>
 #include <Button.h>
@@ -346,19 +345,19 @@ static void okClick(void)
 		swallowclick[commandidx]=(swallowClickView->Value()==B_CONTROL_ON);
 
 
-    	lseek(handle,OFFSETFACTORSFORWHEEL,0);
+    	//lseek(handle,OFFSETFACTORSFORWHEEL,0);
 		boolval=(factorsforwheelView->Value()==B_CONTROL_ON);
 		write(handle,&boolval,sizeof(bool));
 
 		for (i=1;i<8;i++)
 	    {
-	    	lseek(handle,OFFSETSCROLLMOUSEDOWN+i,0);
+	    	//lseek(handle,OFFSETSCROLLMOUSEDOWN+i,0);
 			boolval=(mousedownView[i]->Value()==B_CONTROL_ON);
 			write(handle,&boolval,sizeof(bool));
 		}
 		for (i=1;i<8;i++)
 	    {
-	    	lseek(handle,OFFSETSWALLOWCLICK+i,0);
+	    	//lseek(handle,OFFSETSWALLOWCLICK+i,0);
 			write(handle,&swallowclick[i],sizeof(bool));
 		}
 		
@@ -370,23 +369,23 @@ static void okClick(void)
 		minimumM=minimumM*minimumM;
 
 
-    	lseek(handle,OFFSETFACTORX0,0);
+    	//lseek(handle,OFFSETFACTORX0,0);
 		write(handle,&factorX[0],sizeof(float));
 
-    	lseek(handle,OFFSETFACTORY0,0);
+    	//lseek(handle,OFFSETFACTORY0,0);
 		write(handle,&factorY[0],sizeof(float));
 
-    	lseek(handle,OFFSETFACTORX1,0);
+    	//lseek(handle,OFFSETFACTORX1,0);
 		write(handle,&factorX[1],sizeof(float));
 
-    	lseek(handle,OFFSETFACTORY1,0);
+    	//lseek(handle,OFFSETFACTORY1,0);
 		write(handle,&factorY[1],sizeof(float));
 
-		lseek(handle,OFFSETMINIMUM,0);
+		//lseek(handle,OFFSETMINIMUM,0);
 		write(handle,&minimumM,sizeof(int));
 
 	    strcpy(command[commandidx],eventcommand->Text());
-    	lseek(handle,OFFSETCMD0,0);
+    	//lseek(handle,OFFSETCMD0,0);
 		write(handle,command,255*9);
 	    
 			close(handle);
