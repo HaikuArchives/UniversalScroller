@@ -15,6 +15,8 @@ enum ButtonDownCommandKind { unknown, button, key, cut, copy, paste, executable 
 #define CMD_MOUSE_BUTTON_INDEX_TERTIARY  2
 #define CMD_MOUSE_BUTTON_INDICES_COUNT   3
 
+// The maximal length of ther command member
+#define MAX_COMMAND_LENGTH 250
 
 class ButtonDownCommand {
 public:

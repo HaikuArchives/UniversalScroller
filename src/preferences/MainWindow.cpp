@@ -28,7 +28,6 @@
 #define QUIT_MSG 'BTQT'
 #define MSG_CANCEL 'USCA'
 #define MSG_OK 'USOK'
-#define MSG_OK 'USOK'
 #define CHANGEEVENT_MSG 'USC'*0x100
 #define CHANGEEVENTTYPE_MSG 'USET'
 #define LEFT_MSG 'USLS'
@@ -37,10 +36,6 @@
 #define MIDDLEDBL_MSG 'USMD'
 #define RIGHT_MSG 'USRS'
 #define RIGHTDBL_MSG 'USRD'
-
-#define WORKSPACEM_MSG 'USW-'
-#define WORKSPACE_MSG 'USW '
-#define WORKSPACEP_MSG 'USW+'
 
 #define CUT_MSG 'USCT'
 #define COPY_MSG 'USCP'
@@ -51,15 +46,14 @@
 #include "Configuration.h"
 #include "MainWindow.h"
 
-BTextControl *factorXView[2],*factorYView[2],*speedleftView,*speedmiddleView,*speedrightView;
+BTextControl *factorXView[2],*factorYView[2];
 BCheckBox *factorsforwheelView,*mousedownView[8],*swallowClickView;
-BPopUpMenu *popupmenu;
 BTextControl *eventcommand;
 
-BTextControl *minimumMView,*commandView[2],*workspaceView;
-BCheckBox *passthroughView,*passthroughasdoubleView,*restartinputserver;
+BTextControl *minimumMView,*commandView[2];
+BCheckBox *restartinputserver;
 
-#define MAX_COMMAND_LENGTH 250
+#define MAX_CONF_STR 250
 
 float factorX[2],factorY[2];
 int minimumM, passthrough,passthroughasdouble;
@@ -78,21 +72,17 @@ MainWindow::MainWindow(BRect frame)
 	BView *view;
 	BTabView *tabview;
 	BTab *tab;		
+		
+	tabview=new BTabView( BRect(0,0,630,300),"tabview");
 
-	frame.left=0;
-	frame.top=0;
-	frame.bottom=300;
-	frame.right=630;
-		
-	tabview=new BTabView(frame,"tabview");
-		
-	frame.InsetBy(5,5);
-	frame.bottom-=tabview->TabHeight();
+    BRect tabViewFrame=BRect( 0, 0, 630, 300 );		
+	tabViewFrame.InsetBy(5,5);
+	tabViewFrame.bottom-=tabview->TabHeight();
 	
 	//
 	// S C R O L L V I E W
 	//
-	view=new BView(frame,"scrollview", B_FOLLOW_ALL, 0 );
+	view=new BView(tabViewFrame,"scrollview", B_FOLLOW_ALL, 0 );
     view->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
 
 	view->AddChild( new BStringView( BRect(0,5,210,25), NULL, "Use UniversalScrolling for") );
@@ -113,9 +103,9 @@ MainWindow::MainWindow(BRect frame)
 	mousedownView[2]=new BCheckBox(BRect(210,150,500,165),"PT","right",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
 	view->AddChild(mousedownView[2]);
 
-	view->AddChild(new BStringView(BRect(0,170,210,190),"SOME","Minimal mouse movement to"));
-	view->AddChild(new BStringView(BRect(0,190,210,215),"SOME","start UniversalScrolling:"));
-	minimumMView=new BTextControl(BRect(210,190,310,215),"MM","","0",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
+	view->AddChild(new BStringView(BRect(0,170,210,190), NULL, "Minimal mouse movement to"));
+	view->AddChild(new BStringView(BRect(0,190,210,215), NULL, "start UniversalScrolling:"));
+	minimumMView=new BTextControl(BRect(210,190,310,215), NULL, "","0",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
 	minimumMView->SetDivider(0);
 	view->AddChild(minimumMView);
 
@@ -128,53 +118,40 @@ MainWindow::MainWindow(BRect frame)
 	//
 	// S P E E D V I E W
 	//
-	view=new BView(frame,"speedview",0,0);
+	view=new BView(tabViewFrame,"speedview",0,0);
     view->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
 
-	factorsforwheelView=new BCheckBox(BRect(0,5,500,25),"PT","Use below factors for scroll-wheels",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	factorsforwheelView=new BCheckBox(BRect(0,5,500,25), NULL, "Use below factors for scroll-wheels",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
 	view->AddChild(factorsforwheelView);
 
-	view->AddChild(new BStringView(BRect(20,35,500,55),"SOME","normal Scroll-Speed"));
+	view->AddChild(new BStringView(BRect(20,35,500,55), NULL, "normal Scroll-Speed"));
 
-	factorXView[0]=new BTextControl(BRect(40,55,200,75),"X0","Factor X","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	factorXView[0]=new BTextControl(BRect(40,55,200,75), NULL, "Factor X","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
 	factorXView[0]->SetDivider(70);
 	view->AddChild(factorXView[0]);
 
-	factorYView[0]=new BTextControl(BRect(40,75,200,95),"Y1","Factor Y","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	factorYView[0]=new BTextControl(BRect(40,75,200,95), NULL, "Factor Y","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
 	factorYView[0]->SetDivider(70);
 	view->AddChild(factorYView[0]);
 
-	view->AddChild(new BStringView(BRect(20,105,500,125),"SOME","fast Scroll-Speed"));
+	view->AddChild(new BStringView(BRect(20,105,500,125), NULL, "fast Scroll-Speed"));
 
-	factorXView[1]=new BTextControl(BRect(40,125,200,145),"X1","Factor X","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	factorXView[1]=new BTextControl(BRect(40,125,200,145), NULL, "Factor X","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
 	factorXView[1]->SetDivider(70);
 	view->AddChild(factorXView[1]);
 
-	factorYView[1]=new BTextControl(BRect(40,145,200,165),"Y1","Factor Y","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	factorYView[1]=new BTextControl(BRect(40,145,200,165), NULL, "Factor Y","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
 	factorYView[1]->SetDivider(70);
 	view->AddChild(factorYView[1]);
-
-/*	view->AddChild(new BStringView(BRect(170,10,320,25),"SOME","Double-click time (in millisecs)"));
-	speedleftView=new BTextControl(BRect(190,30,320,65),"PrimButton","Primary Button","350",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	speedleftView->SetDivider(90);
-	view->AddChild(speedleftView);
-	speedrightView=new BTextControl(BRect(190,30+20,320,65+20),"SecButton","Secondary Button","350",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	speedrightView->SetDivider(90);
-	view->AddChild(speedrightView);
-	speedmiddleView=new BTextControl(BRect(190,30+40,320,65+40),"SecButton","Tertiary Button","350",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	speedmiddleView->SetDivider(90);
-	view->AddChild(speedmiddleView);
-*/
 
 	tab=new BTab();
 	tabview->AddTab(view,tab);
 	tab->SetLabel("Scroll-Speed");	
 	
-
 	//
 	// C L I C K V I E W
 	//
-	view=new BView(frame,"clickview",0,0);
+	view=new BView(tabViewFrame,"clickview",0,0);
     view->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
 	view->AddChild(new BStringView(BRect(10,10,300,25),NULL,"What to do when ..."));
 	
@@ -230,7 +207,7 @@ MainWindow::MainWindow(BRect frame)
        	
 	ButtonPanelBottom->AddChild(new BButton(BRect(0,0,60,25), NULL,"Cancel",new BMessage(MSG_CANCEL)));
 
-	restartinputserver=new BCheckBox(BRect(120,0,310,25),"PT","restart inputserver on OK",NULL,B_FOLLOW_LEFT_RIGHT|B_FOLLOW_TOP,B_WILL_DRAW|B_NAVIGABLE);
+	restartinputserver=new BCheckBox(BRect(120,0,310,25), NULL, "restart inputserver on OK",NULL,B_FOLLOW_LEFT_RIGHT|B_FOLLOW_TOP,B_WILL_DRAW|B_NAVIGABLE);
     restartinputserver->SetValue(B_CONTROL_ON);
 	ButtonPanelBottom->AddChild( restartinputserver );
 
@@ -241,8 +218,6 @@ MainWindow::MainWindow(BRect frame)
 	updateControlsFromConfiguration();
 
 }
-
-#define MAX_CONF_STR 250
 
 static void downCommandChanger( int commandidx )
 {
