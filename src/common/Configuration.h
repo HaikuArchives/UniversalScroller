@@ -16,13 +16,13 @@ public:
 	int minScroll;	
 	int doubleClickSpeed[3];
 	ButtonDownCommand buttonDownCommand[9];
+	bool swallowclick[9];
 		
 	float factorX[2];
 	float factorY[2];
 	bool factorsforwheel;
 	
 	bool scrollmousedown[8];
-	bool swallowclick[8];
 
     static int getButtonDownIndex( int32, int32 );
 private:

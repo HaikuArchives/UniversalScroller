@@ -13,6 +13,7 @@ enum ButtonDownCommandKind { unknown, button, key, cut, copy, paste, executable 
 #define CMD_MOUSE_BUTTON_INDEX_PRIMARY   0
 #define CMD_MOUSE_BUTTON_INDEX_SECONDARY 1
 #define CMD_MOUSE_BUTTON_INDEX_TERTIARY  2
+#define CMD_MOUSE_BUTTON_INDICES_COUNT   3
 
 
 class ButtonDownCommand {

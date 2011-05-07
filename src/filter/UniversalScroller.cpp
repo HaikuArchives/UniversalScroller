@@ -181,11 +181,11 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
  	static int32 virtualButtonsDown_s=0;
 
 	// timestamp when the primary, secondare, tertiary physical mouse button was clicked last time
-	static int64 virtualButtonDownTime_s[3]={0,0,0};
+	static int64 virtualButtonDownTime_s[ CMD_MOUSE_BUTTON_INDICES_COUNT ]={0,0,0};
  
 	// the accumulator for the number of clicks of primary, secondary and tertiary
 	// mouse buttons, to allow double, triple, ... clicks 
-	static int64 virtualClickAccumulator_s[3]={0,0,0};
+	static int64 virtualClickAccumulator_s[ CMD_MOUSE_BUTTON_INDICES_COUNT ]={0,0,0};
  
 	/* =============================================================
 	Variables used for extracting information from the current message
@@ -276,39 +276,45 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 
 				if ( ( cmdidx != -1 ) && ( ! configuration.swallowclick[cmdidx] ) )
 				{			
-					int new_button_down=0;	
-					int new_clicks=0;
+					int virtualButtonToPressIdx=0;	
+					int virtualButtonToPressClickCount=0;
 				
 					switch ( configuration.buttonDownCommand[cmdidx].kind )
 					{
 
 						case button:
- 						    new_button_down=configuration.buttonDownCommand[cmdidx].mouseButtonIndex;
-						    new_clicks=configuration.buttonDownCommand[cmdidx].mouseButtonClicks;
+ 						    virtualButtonToPressIdx=configuration.buttonDownCommand[cmdidx].mouseButtonIndex;
+
+						   	if ( virtualButtonToPressIdx <= 0 || virtualButtonToPressIdx >= CMD_MOUSE_BUTTON_INDICES_COUNT )
+						   	{
+						   		virtualButtonToPressIdx = 0;
+						   	}
+						   							   	 
+						    virtualButtonToPressClickCount=configuration.buttonDownCommand[cmdidx].mouseButtonClicks;
 					    
-							virtualButtonsDown = virtualButtonsDown_s | ( ButtonDownCommand::mouseButtonIndexToMask( new_button_down ));
+							virtualButtonsDown = virtualButtonsDown_s | ( ButtonDownCommand::mouseButtonIndexToMask( virtualButtonToPressIdx ));
 
 							//Reset the accumulator, if last click is too far back
-							if ( system_time() - virtualButtonDownTime_s[new_button_down]
-							     > configuration.doubleClickSpeed[new_button_down] )
+							if ( system_time() - virtualButtonDownTime_s[virtualButtonToPressIdx]
+							     > configuration.doubleClickSpeed[virtualButtonToPressIdx] )
 							{
-								virtualClickAccumulator_s[new_button_down]=0;
+								virtualClickAccumulator_s[virtualButtonToPressIdx]=0;
 							}
 							
-							virtualButtonDownTime_s[new_button_down]=system_time();
+							virtualButtonDownTime_s[virtualButtonToPressIdx]=system_time();
 						
-							while (new_clicks>0)
+							while (virtualButtonToPressClickCount>0)
 							{
-								virtualClickAccumulator_s[new_button_down]++;
-								new_clicks--;
+								virtualClickAccumulator_s[virtualButtonToPressIdx]++;
+								virtualButtonToPressClickCount--;
 								CREATE_MSG( B_MOUSE_DOWN );
 								msg->AddPoint("where",physicalButtonDownPosition_s);
 								msg->AddInt32("modifiers",physicalModifiers);
 								msg->AddInt32("buttons",virtualButtonsDown);
-								msg->AddInt32("clicks",virtualClickAccumulator_s[new_button_down]);
+								msg->AddInt32("clicks",virtualClickAccumulator_s[virtualButtonToPressIdx]);
 								ENLIST_MSG();
 						
-								if (new_clicks>0)
+								if (virtualButtonToPressClickCount>0)
 								{
 									SEND_MOUSE_UP( virtualButtonsDown_s );
 								}	
