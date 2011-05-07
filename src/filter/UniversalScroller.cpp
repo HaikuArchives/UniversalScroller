@@ -1,22 +1,7 @@
-/**********************************************************/
-/*                UniversalScroller.cpp                   */
-/**********************************************************/
-/*                                                        */
-/* This little util should help those, who used to work   */
-/* with Logitech's MouseWare's UniversalScroll Option     */
-/*                                                        */
-/*--------------------------------------------------------*/
-/*                                                        */
-/* infos, updates, questions, ...                         */
-/*    Troublemaker@altavista.net                          */
-/*    http://come.to/Troublemaker                         */
-/*                                                        */
-/*--------------------------------------------------------*/
-/*                                                        */
-/*  Author   Date        What                             */
-/*  Gisi   2000.09.13    V2.0 everything new ...          */
-/*                                                        */
-/**********************************************************/
+/*
+ * Copyright 2010 Your Name <your@email.address>
+ * All rights reserved. Distributed under the terms of the GPLv2 license.
+ */
 
 #include <Message.h>
 #include <View.h>
@@ -26,19 +11,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-
-
-
 #include "TMsystem.h"
 #include "button.h"
 #include "Configuration.h"
 
 #include "UniversalScroller.h"
-
-
-
-
 
 UniversalScroller::UniversalScroller()
 {
@@ -129,6 +106,11 @@ void simulate_keypress( const char *command, int32 physicalModifiers, BList *out
 	int8 numbytes=0;
 	NIBBLE_INT( numbytes );
 
+	if (numbytes >= 3)
+	{
+		numbytes=2;
+	}
+	
 	int8 byte[3]={0,0,0};
 	for (i=0;i<numbytes;i++)
 	{
