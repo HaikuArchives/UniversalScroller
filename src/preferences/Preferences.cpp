@@ -1,13 +1,3 @@
-/*#define OFFSETFACTORX0 				11520
-#define OFFSETFACTORX1 				OFFSETFACTORX0+4
-#define OFFSETFACTORY0 				OFFSETFACTORX0+8
-#define OFFSETFACTORY1  			OFFSETFACTORX0+12
-#define OFFSETMINIMUM      			OFFSETFACTORX0+16
-#define OFFSETPASSTHROUGH  			OFFSETFACTORX0+20
-#define OFFSETPASSTHROUGHASDOUBLE  	OFFSETFACTORX0+24
-#define OFFSETCMD0         			OFFSETFACTORX0+32
-#define OFFSETCMD1         			OFFSETCMD0+255
-*/
 #include "offsets.h"
 #include <Application.h>
 #include <Window.h>
@@ -20,6 +10,8 @@
 #include <TextView.h>
 #include <TabView.h>
 #include <PopUpMenu.h>
+#include <Menu.h>
+#include <MenuField.h>
 #include <MenuItem.h>
 #include <InterfaceDefs.h>
 
@@ -32,7 +24,6 @@
 #define QUIT_MSG 'BTQT'
 #define MSG_CANCEL 'USCA'
 #define MSG_OK 'USOK'
-#define MSG_HOMEPAGE 'USHP'
 #define MSG_OK 'USOK'
 #define CHANGEEVENT_MSG 'USC'*0x100
 #define CHANGEEVENTTYPE_MSG 'USET'
@@ -89,6 +80,7 @@ public:
 
 
 				int LINES;
+
 };
 USPrefApplication::USPrefApplication()
 		  		  : BApplication("application/x-vnd.TM.USPref")
@@ -96,7 +88,7 @@ USPrefApplication::USPrefApplication()
 	USPrefWindow		*aWindow;
 	BRect			aRect;
 	int left=50,top=50;
-	aRect.Set(left, top, left+330, top+225);
+	aRect.Set(left, top, left+370, top+325);
 	aWindow = new USPrefWindow(aRect);
 
 	aWindow->Show();
@@ -104,7 +96,7 @@ USPrefApplication::USPrefApplication()
 
 
 USPrefWindow::USPrefWindow(BRect frame)
-				: BWindow(frame, "UniversalScroller - Preferences", B_TITLED_WINDOW,B_NOT_ZOOMABLE | B_NOT_RESIZABLE)
+				: BWindow(frame, "UniversalScroller - Preferences", B_TITLED_WINDOW, B_NOT_RESIZABLE )
 {
 	BView *aView;
 	BTabView *tabview;
@@ -126,40 +118,43 @@ USPrefWindow::USPrefWindow(BRect frame)
 		popupmenu->AddItem(new BMenuItem("middle down and right interclick",new BMessage(CHANGEEVENT_MSG+8)));
 
 	frame.left=frame.top=0;
-	frame.bottom=200;
-	frame.right=330;
+	frame.bottom=300;
+	frame.right=630;
 		
 	tabview=new BTabView(frame,"tabview");
-
-	
+		
 	frame.InsetBy(5,5);
 	frame.bottom-=tabview->TabHeight();
 	
 	//
 	// S C R O L L V I E W
 	//
-	aView=new BView(frame,"scrollview",0,0);
-	aView->SetViewColor(0xd8,0xd8,0xd8);
+	aView=new BView(frame,"scrollview", B_FOLLOW_ALL, 0 );
+    aView->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
 
-	aView->AddChild(new BStringView(BRect(10,10,300,25),"SOME","use UniversalScrolling when these buttons are down"));
-	mousedownView[1]=new BCheckBox(BRect(100,30,180,45),"PT","left",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	BStringView *stringView;
+	
+	aView->AddChild( new BStringView( BRect(0,5,210,25), NULL, "Use UniversalScrolling for") );
+	aView->AddChild( new BStringView( BRect(0,25,210,45), NULL, "those combinations of buttons:") );
+
+	mousedownView[1]=new BCheckBox(BRect(210,30,500,45),"PT","left",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
 	aView->AddChild(mousedownView[1]);
-	mousedownView[3]=new BCheckBox(BRect(100,50,180,65),"PT","left+right",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	mousedownView[3]=new BCheckBox(BRect(210,50,500,65),"PT","left+right",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
 	aView->AddChild(mousedownView[3]);
-	mousedownView[5]=new BCheckBox(BRect(100,70,180,85),"PT","left+middle",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	mousedownView[5]=new BCheckBox(BRect(210,70,500,85),"PT","left+middle",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
 	aView->AddChild(mousedownView[5]);
-	mousedownView[7]=new BCheckBox(BRect(100,90,210,105),"PT","left+middle+right",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	mousedownView[7]=new BCheckBox(BRect(210,90,500,105),"PT","left+middle+right",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
 	aView->AddChild(mousedownView[7]);
-	mousedownView[4]=new BCheckBox(BRect(100,110,180,125),"PT","middle",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	mousedownView[4]=new BCheckBox(BRect(210,110,500,125),"PT","middle",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
 	aView->AddChild(mousedownView[4]);
-	mousedownView[6]=new BCheckBox(BRect(100,130,180,145),"PT","middle+right",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	mousedownView[6]=new BCheckBox(BRect(210,130,500,145),"PT","middle+right",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
 	aView->AddChild(mousedownView[6]);
-	mousedownView[2]=new BCheckBox(BRect(100,150,180,165),"PT","right",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	mousedownView[2]=new BCheckBox(BRect(210,150,500,165),"PT","right",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
 	aView->AddChild(mousedownView[2]);
 
-	aView->AddChild(new BStringView(BRect(225,110,310,135),"SOME","min. Movement"));
-	aView->AddChild(new BStringView(BRect(230,123,310,148),"SOME","for Scrolling"));
-	minimumMView=new BTextControl(BRect(210,150,310,165),"MM","","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	aView->AddChild(new BStringView(BRect(0,170,210,190),"SOME","Minimal mouse movement to"));
+	aView->AddChild(new BStringView(BRect(0,190,210,215),"SOME","start UniversalScrolling:"));
+	minimumMView=new BTextControl(BRect(210,190,310,215),"MM","","0",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
 	minimumMView->SetDivider(0);
 	aView->AddChild(minimumMView);
 
@@ -173,25 +168,30 @@ USPrefWindow::USPrefWindow(BRect frame)
 	// S P E E D V I E W
 	//
 	aView=new BView(frame,"speedview",0,0);
-	aView->SetViewColor(0xd8,0xd8,0xd8);
-	aView->AddChild(new BStringView(BRect(10,10,150,25),"SOME","normal Scroll-Speed"));
-	factorXView[0]=new BTextControl(BRect(20,30,130,45),"X0","Factor X","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	factorXView[0]->SetDivider(50);
+    aView->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
+
+	factorsforwheelView=new BCheckBox(BRect(0,5,500,25),"PT","Use below factors for scroll-wheels",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	aView->AddChild(factorsforwheelView);
+
+	aView->AddChild(new BStringView(BRect(20,35,500,55),"SOME","normal Scroll-Speed"));
+
+	factorXView[0]=new BTextControl(BRect(40,55,200,75),"X0","Factor X","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	factorXView[0]->SetDivider(70);
 	aView->AddChild(factorXView[0]);
-	factorYView[0]=new BTextControl(BRect(20,50,130,65),"Y1","Factor Y","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	factorYView[0]->SetDivider(50);
+
+	factorYView[0]=new BTextControl(BRect(40,75,200,95),"Y1","Factor Y","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	factorYView[0]->SetDivider(70);
 	aView->AddChild(factorYView[0]);
-	aView->AddChild(new BStringView(BRect(10,80+10,150,80+25),"SOME","fast Scroll-Speed"));
-	factorXView[1]=new BTextControl(BRect(20,80+30,130,80+45),"X1","Factor X","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	factorXView[1]->SetDivider(50);
+
+	aView->AddChild(new BStringView(BRect(20,105,500,125),"SOME","fast Scroll-Speed"));
+
+	factorXView[1]=new BTextControl(BRect(40,125,200,145),"X1","Factor X","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	factorXView[1]->SetDivider(70);
 	aView->AddChild(factorXView[1]);
-	factorYView[1]=new BTextControl(BRect(20,80+50,130,80+65),"Y1","Factor Y","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	factorYView[1]->SetDivider(50);
+
+	factorYView[1]=new BTextControl(BRect(40,145,200,165),"Y1","Factor Y","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	factorYView[1]->SetDivider(70);
 	aView->AddChild(factorYView[1]);
-	((BTextView *)factorXView[0])->SetWordWrap(false);
-	((BTextView *)factorYView[0])->SetWordWrap(false);
-	((BTextView *)factorXView[1])->SetWordWrap(false);
-	((BTextView *)factorYView[1])->SetWordWrap(false);
 
 /*	aView->AddChild(new BStringView(BRect(170,10,320,25),"SOME","Double-click time (in millisecs)"));
 	speedleftView=new BTextControl(BRect(190,30,320,65),"PrimButton","Primary Button","350",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
@@ -204,41 +204,60 @@ USPrefWindow::USPrefWindow(BRect frame)
 	speedmiddleView->SetDivider(90);
 	aView->AddChild(speedmiddleView);
 */
-	factorsforwheelView=new BCheckBox(BRect(10,155,180,170),"PT","Use factors for scroll-wheels",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	aView->AddChild(factorsforwheelView);
 
 	tab=new BTab();
 	tabview->AddTab(aView,tab);
-	tab->SetLabel("Speed");	
+	tab->SetLabel("Scroll-Speed");	
 	
 
 	//
 	// C L I C K V I E W
 	//
 	aView=new BView(frame,"clickview",0,0);
-	aView->SetViewColor(0xd8,0xd8,0xd8);
-	aView->AddChild(new BStringView(BRect(10,10,300,25),"SOME","What to do when ..."));
-	eventbtn=new BButton(BRect(20,30,180,55),"selmouse","left down",new BMessage(CHANGEEVENTTYPE_MSG));
-	aView->AddChild(eventbtn);
+    aView->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
+	aView->AddChild(new BStringView(BRect(10,10,300,25),NULL,"What to do when ..."));
 	
-	eventcommand=new BTextControl(BRect(10,70,310,85),"EQU","","",NULL);
+	BMenu *menu;
+	menu = new BMenu( "" );
+	menu->SetLabelFromMarked( true );
+	
+	menu->AddItem(new BMenuItem("left down",new BMessage(CHANGEEVENT_MSG+0)));                           
+	menu->AddItem(new BMenuItem("left down and right interclick",new BMessage(CHANGEEVENT_MSG+1)));
+	menu->AddItem(new BMenuItem("left down and middle interclick",new BMessage(CHANGEEVENT_MSG+2)));
+	menu->AddItem(new BMenuItem("right down",new BMessage(CHANGEEVENT_MSG+3)));
+	menu->AddItem(new BMenuItem("right down and left interclick",new BMessage(CHANGEEVENT_MSG+4)));
+	menu->AddItem(new BMenuItem("right down and middle interclick",new BMessage(CHANGEEVENT_MSG+5)));
+	menu->AddItem(new BMenuItem("middle down",new BMessage(CHANGEEVENT_MSG+6)));
+	menu->AddItem(new BMenuItem("middle down and left interclick",new BMessage(CHANGEEVENT_MSG+7)));
+	menu->AddItem(new BMenuItem("middle down and right interclick",new BMessage(CHANGEEVENT_MSG+8)));	
+	menu->ItemAt( 0 )->SetMarked( true );
+	BMenuField *menuField;
+	menuField = new BMenuField( BRect( 20, 30, 340, 55 ), NULL, NULL, menu );
+	
+	aView->AddChild( menuField );
+	
+	eventbtn=new BButton(BRect(20,30,340,55),"selmouse","left down",new BMessage(CHANGEEVENTTYPE_MSG));
+	//aView->AddChild(eventbtn);
+	
+	swallowClickView=new BCheckBox(BRect(20,70,500,90),"PT","swallow this click",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+	aView->AddChild(swallowClickView);
+
+	eventcommand=new BTextControl(BRect(10,95,340,115),"EQU","","",NULL);
 	eventcommand->SetDivider(0);
 	aView->AddChild(eventcommand);
 	
-	aView->AddChild(new BButton(BRect(10,95,110,110),"selmouse","Left Click",new BMessage(LEFT_MSG)));
-	aView->AddChild(new BButton(BRect(110,95,210,110),"selmouse","Middle Click",new BMessage(MIDDLE_MSG)));
-	aView->AddChild(new BButton(BRect(210,95,310,110),"selmouse","Right Click",new BMessage(RIGHT_MSG)));
+	aView->AddChild(new BButton(BRect( 10,125,120,150),"selmouse","Left Sgl Click",new BMessage(LEFT_MSG)));
+	aView->AddChild(new BButton(BRect(120,125,230,150),"selmouse","Middle Sgl Click",new BMessage(MIDDLE_MSG)));
+	aView->AddChild(new BButton(BRect(230,125,340,150),"selmouse","Right Sgl Click",new BMessage(RIGHT_MSG)));
 	
-	aView->AddChild(new BButton(BRect(10,119,110,130),"selmouse","Left Double Click",new BMessage(LEFTDBL_MSG)));
-	aView->AddChild(new BButton(BRect(110,119,210,130),"selmouse","Middle Double Click",new BMessage(MIDDLEDBL_MSG)));
-	aView->AddChild(new BButton(BRect(210,119,310,130),"selmouse","Right Double Click",new BMessage(RIGHTDBL_MSG)));
+	aView->AddChild(new BButton(BRect( 10,150,120,175),"selmouse","Left Dbl Click",new BMessage(LEFTDBL_MSG)));
+	aView->AddChild(new BButton(BRect(120,150,230,175),"selmouse","Middle Dbl Click",new BMessage(MIDDLEDBL_MSG)));
+	aView->AddChild(new BButton(BRect(230,150,340,175),"selmouse","Right Dbl Click",new BMessage(RIGHTDBL_MSG)));
 
-	aView->AddChild(new BButton(BRect(10,143,110,160),"selmouse","Cut",new BMessage(CUT_MSG)));
-	aView->AddChild(new BButton(BRect(110,143,210,160),"selmouse","Copy",new BMessage(COPY_MSG)));
-	aView->AddChild(new BButton(BRect(210,143,310,160),"selmouse","Paste",new BMessage(PASTE_MSG)));
+	aView->AddChild(new BButton(BRect( 10,175,120,200),"selmouse","Cut",new BMessage(CUT_MSG)));
+	aView->AddChild(new BButton(BRect(120,175,230,200),"selmouse","Copy",new BMessage(COPY_MSG)));
+	aView->AddChild(new BButton(BRect(230,175,340,200),"selmouse","Paste",new BMessage(PASTE_MSG)));
 
-	swallowClickView=new BCheckBox(BRect(210,40,310,60),"PT","swallow this click",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	aView->AddChild(swallowClickView);
 
 	tab=new BTab();
 	tabview->AddTab(aView,tab);
@@ -246,17 +265,23 @@ USPrefWindow::USPrefWindow(BRect frame)
 	
 
 	AddChild(tabview);
-	
-	AddChild(new BButton(BRect(0,200,60,225), "EQUBTN","Cancel",new BMessage(MSG_CANCEL)));
-	AddChild(new BButton(BRect(60,200,120,225), "EQUBTN","Homepage",new BMessage(MSG_HOMEPAGE)));
-	AddChild(new BButton(BRect(270,200,330,225), "EQUBTN","OK",new BMessage(MSG_OK)));
-	restartinputserver=new BCheckBox(BRect(120,200,270,225),"PT","restart inputserver on OK",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
+
+    // Button Panel at bottom ----------------------------------------------------------------
+	BView *ButtonPanelBottom=new BView(BRect(0,300,630,325), NULL, B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM, NULL );
+    ButtonPanelBottom->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
+       	
+	ButtonPanelBottom->AddChild(new BButton(BRect(0,0,60,25), NULL,"Cancel",new BMessage(MSG_CANCEL)));
+
+	restartinputserver=new BCheckBox(BRect(120,0,310,25),"PT","restart inputserver on OK",NULL,B_FOLLOW_LEFT_RIGHT|B_FOLLOW_TOP,B_WILL_DRAW|B_NAVIGABLE);
     restartinputserver->SetValue(B_CONTROL_ON);
-    restartinputserver->SetViewColor(0xd8,0xd8,0xd8);
-    restartinputserver->SetLowColor(0xd8,0xd8,0xd8);
-	AddChild(restartinputserver);
+	ButtonPanelBottom->AddChild( restartinputserver );
+
+	ButtonPanelBottom->AddChild(new BButton(BRect(310,0,370,25), NULL,"OK",new BMessage(MSG_OK),B_FOLLOW_RIGHT|B_FOLLOW_TOP));
+		
+	AddChild(ButtonPanelBottom);
 
 	
+/*LOADING CONF
 	handle=open("/boot/home/config/add-ons/input_server/filters/UniversalScroller",O_RDWR);
 	if (handle<=0)
 	{
@@ -268,24 +293,6 @@ USPrefWindow::USPrefWindow(BRect frame)
 	{
 	    minimumMView->SetText("0");
 
-  /*  	lseek(handle,OFFSETTIMEPRIMARY,0);
-		read(handle,&primdbltime,sizeof(int));
-		primdbltime/=1000;
-		sprintf(str,"%d",primdbltime);
-	    speedleftView->SetText(str);
-
-    	lseek(handle,OFFSETTIMESECONDARY,0);
-		read(handle,&secdbltime,sizeof(int));
-		secdbltime/=1000;
-		sprintf(str,"%d",secdbltime);
-	    speedrightView->SetText(str);
-
-    	lseek(handle,OFFSETTIMETERTIARY,0);
-		read(handle,&tertdbltime,sizeof(int));
-		tertdbltime/=1000;
-		sprintf(str,"%d",tertdbltime);
-	    speedmiddleView->SetText(str);
-*/
     	lseek(handle,OFFSETMINIMUM,0);
 		read(handle,&minimumM,sizeof(int));
 		minimumM=sqrt(minimumM);
@@ -347,7 +354,7 @@ USPrefWindow::USPrefWindow(BRect frame)
 
 
 	}
-
+*/
 
 }
 
@@ -429,10 +436,6 @@ void USPrefWindow::MessageReceived(BMessage* message)
 			eventcommand->SetText(CUT);
 		break;
 		
-		case MSG_HOMEPAGE:
-			system("NetPositive http://come.to/Troublemaker");
-		break;
-		
 		case MSG_OK:
 			long i,j;
 			int handle;
@@ -467,10 +470,7 @@ void USPrefWindow::MessageReceived(BMessage* message)
 		sscanf(factorXView[1]->Text(),"%f",&factorX[1]);
 		sscanf(factorYView[1]->Text(),"%f",&factorY[1]);
 		sscanf(minimumMView->Text(),"%u",&minimumM);
-/*		sscanf(speedleftView->Text(),"%u",&primdbltime);
-		sscanf(speedrightView->Text(),"%u",&secdbltime);
-		sscanf(speedmiddleView->Text(),"%u",&tertdbltime);
-*/		minimumM=minimumM*minimumM;
+		minimumM=minimumM*minimumM;
 
 
     	lseek(handle,OFFSETFACTORX0,0);
@@ -488,23 +488,10 @@ void USPrefWindow::MessageReceived(BMessage* message)
 		lseek(handle,OFFSETMINIMUM,0);
 		write(handle,&minimumM,sizeof(int));
 
-/*		primdbltime*=1000;
-		lseek(handle,OFFSETTIMEPRIMARY,0);
-		write(handle,&primdbltime,sizeof(int));
-
-		secdbltime*=1000;
-		lseek(handle,OFFSETTIMESECONDARY,0);
-		write(handle,&secdbltime,sizeof(int));
-
-		tertdbltime*=1000;
-		lseek(handle,OFFSETTIMETERTIARY,0);
-		write(handle,&tertdbltime,sizeof(int));
-*/
 	    strcpy(command[commandidx],eventcommand->Text());
     	lseek(handle,OFFSETCMD0,0);
 		write(handle,command,255*9);
 	    
-//*/			
 			close(handle);
 			if (restartinputserver->Value()==B_CONTROL_ON) system("/system/servers/input_server -q");
 
@@ -519,130 +506,8 @@ void USPrefWindow::MessageReceived(BMessage* message)
 
 int main(int argc, char*argv[])
 {	
-	int i;
-	char str[255];
-	bool done=false;
-	int lines=4,help;
-	
-	//randseed=real_time_clock();
-	
-//	strcpy(path,argv[0]);
-//	i=strlen(path)-1;
-//	while ((i>0) &&  (path[i]!='/')) i--;
-//	path[i+1]=0;
-	
-	
-	
-	
-//	printf("ProCalc V1.0 (-? for help)\n");
+	USPrefApplication	myApplication;
+	myApplication.Run();
 
-	for (i=1;i<argc;i++)
-	{
-		strcpy(str,argv[i]);
-	 	str[2]=0;
-		/*if (strcmp(str,"-c")==0)
-		{
-			sprintf(filename,argv[i]+2);
-			printf("Using config-file : %s\n",filename);
-			filehandle=open(filename,O_RDWR);
-			if (filehandle==-1)
-			{	
-				filehandle=creat(filename,0x333);
-				close(filehandle);
-				filehandle=open(filename,O_RDWR);
-				if (filehandle!=-1)
-				{
-					donewithfilename=true;
-					close(filehandle);
-				}
-				
-			}
-			else donewithfilename=true;
-			if (!donewithfilename)
-				printf("Sorry. Problems openning the config-file %s\n",filename);
-		}*/
-	/*	if (strcmp(str,"-n")==0)
-		{
-			WINDOWFLOAT=B_NORMAL_WINDOW_FEEL;
-		}
-		if (strcmp(str,"-s")==0)
-		{
-			sprintf(str,argv[i]+2);
-			help=atoi(str);
-			if (help<=MAXLINES) lines=help;
-			
-		}
-		if (strcmp(str,"-l")==0)
-		{
-			sprintf(str,argv[i]+2);
-			help=atoi(str);
-			LINEHEIGHT=20+10*help;
-			
-		}*/
-		//printf("%d %s\n",i,argv[i]);	 	
-	}
-
-/*	if ((argc>1) && ((strcmp("-?",argv[1])==0) || (strcmp("-h",argv[1])==0) || (strcmp("--help",argv[1])==0) ))
-	{
-		printf("   -?        This Help-Message\n");
-		printf("   -lXXX     Opens ProCalc with XXX lines per slot\n");
-		printf("   -n        non-floating Window Feel\n");
-		printf("   -sXXX     Opens ProCalc with XXX slots of Formula-Fields\n");
-		done=true;
-	}
-/*
-	if ((!donewithfilename) && (!done))
-	{
-		sprintf(filename,"%sProCalc.config",path);
-		filehandle=open(filename,O_RDWR);
-		if (filehandle==-1)
-		{	
-			sprintf(filename,"/boot/home/ProCalc.config");
-			filehandle=open(filename,O_RDWR);
-			if (filehandle==-1)
-			{
-				sprintf(filename,"%sProCalc.config",path);
-				filehandle=creat(filename,0x0333);
-				if (filehandle==-1)
-				{	
-					sprintf(filename,"/boot/home/ProCalc.config");
-					filehandle=creat(filename,0x0333);
-				}
-			}
-		}
-		if (filehandle==-1)
-		{
-			printf("File Access Error. Storing of wrong and right letters disabled\n");
-		}
-		else
-		{
-			close(filehandle);
-			filehandle=open(filename,O_RDWR);
-			i=0;
-			while (lseek(filehandle,0,SEEK_END)<MODIFIERS*CHARS*2*sizeof(int))
-				write(filehandle,&i,sizeof(int));
-		
-			lseek(filehandle,0,SEEK_SET);
-			for (i=0;i<MODIFIERS*CHARS;i++)
-			{
-				read(filehandle,&wrong[i],sizeof(int));
-				read(filehandle,&right[i],sizeof(int));
-			}
-			
-			close(filehandle);
-			printf("storing data about letters in %s ...\n",filename);	
-		}
-	}//if donewithfilename==false
-*/
-	int myh=open("/boot/home/config/add-ons/input_server/filters/UniversalScroller",O_RDWR);
-
-	if (myh!=-1)
-	{
-		close(myh);
-		USPrefApplication	myApplication;
-		myApplication.Run();
-	}
-	else
-	system("alert \"Could not find the installed UniversalScroller \n(/boot/home/config/add-ons/input_server/filters/UniversalScroller)\"");
 	return(0);
 }
