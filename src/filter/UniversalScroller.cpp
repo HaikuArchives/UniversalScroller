@@ -285,7 +285,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 						case button:
  						    virtualButtonToPressIdx=configuration.buttonDownCommand[cmdidx].mouseButtonIndex;
 
-						   	if ( virtualButtonToPressIdx <= 0 || virtualButtonToPressIdx >= CMD_MOUSE_BUTTON_INDICES_COUNT )
+						   	if ( virtualButtonToPressIdx < 0 || virtualButtonToPressIdx >= CMD_MOUSE_BUTTON_INDICES_COUNT )
 						   	{
 						   		virtualButtonToPressIdx = 0;
 						   	}
