@@ -4,7 +4,7 @@
  */
 #include <SupportDefs.h>
 
-#include "button.h"
+#include "command_strings.h"
 
 #include "Configuration.h"
 

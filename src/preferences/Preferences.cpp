@@ -51,7 +51,7 @@
 #define COPY_MSG 'USCP'
 #define PASTE_MSG 'USPT'
 
-#include "../include/button.h"
+#include "../include/command_strings.h"
 
 BTextControl *factorXView[2],*factorYView[2],*speedleftView,*speedmiddleView,*speedrightView;
 BCheckBox *factorsforwheelView,*mousedownView[8],*swallowClickView;

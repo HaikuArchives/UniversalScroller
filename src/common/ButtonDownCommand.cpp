@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "button.h"
+#include "command_strings.h"
 #include "ButtonDownCommand.h"
 
 void ButtonDownCommand::check_for_click( const char *str, const char *cmd, ButtonDownCommandKind cmd_kind, int index, int count )
