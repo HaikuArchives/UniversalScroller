@@ -25,7 +25,9 @@ TYPE= APP
 #	are included from different directories.  Also note that spaces
 #	in folder names do not work well with this makefile.
 SRCS= \
-	Preferences.cpp \
+	instantiator.cpp \
+	Application.cpp \
+	MainWindow.cpp \
 	../common/ButtonDownCommand.cpp \
 	../common/Configuration.cpp \
 #

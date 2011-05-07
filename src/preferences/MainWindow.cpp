@@ -1,3 +1,8 @@
+/*
+ * Copyright 2010 Your Name <your@email.address>
+ * All rights reserved. Distributed under the terms of the GPLv2 license.
+ */
+ 
 #include <Application.h>
 #include <Window.h>
 #include <Button.h>
@@ -44,6 +49,7 @@
 #include "command_strings.h"
 
 #include "Configuration.h"
+#include "MainWindow.h"
 
 BTextControl *factorXView[2],*factorYView[2],*speedleftView,*speedmiddleView,*speedrightView;
 BCheckBox *factorsforwheelView,*mousedownView[8],*swallowClickView;
@@ -66,43 +72,8 @@ int commandidx=0;
 
 BButton *OKButton, *CancelButton;
 
-class USPrefApplication : public BApplication 
-{
-public:
-	USPrefApplication();
-};
 
-
-
-class USPrefWindow : public BWindow 
-{
-public:
-				USPrefWindow(BRect frame); 
-				virtual void	MessageReceived(BMessage* message);
-				virtual	bool	QuitRequested();
-
-	private:
-		Configuration configuration;
-				
-		void updateControlsFromConfiguration( void );
-
-				int LINES;
-
-};
-USPrefApplication::USPrefApplication()
-		  		  : BApplication("application/x-vnd.TM.USPref")
-{
-	USPrefWindow		*aWindow;
-	BRect			aRect;
-	int left=50,top=50;
-	aRect.Set(left, top, left+370, top+325);
-	aWindow = new USPrefWindow(aRect);
-
-	aWindow->Show();
-}
-
-
-USPrefWindow::USPrefWindow(BRect frame)
+MainWindow::MainWindow(BRect frame)
 				: BWindow(frame, "UniversalScroller - Preferences", B_TITLED_WINDOW, B_NOT_RESIZABLE )
 {
 	BView *aView;
@@ -283,7 +254,7 @@ static void downCommandChanger( int commandidx )
 	eventcommand->SetText(command[commandidx]);
 }
 
-void USPrefWindow::updateControlsFromConfiguration( void )
+void MainWindow::updateControlsFromConfiguration( void )
 {
 	char str[ MAX_CONF_STR+1 ];
 	int i;
@@ -324,7 +295,7 @@ void USPrefWindow::updateControlsFromConfiguration( void )
 	downCommandChanger(0);
 }	
 
-bool USPrefWindow::QuitRequested()
+bool MainWindow::QuitRequested()
 {
        be_app->PostMessage(B_QUIT_REQUESTED);
        return(true);
@@ -392,7 +363,7 @@ static void okClick(void)
 			if (restartinputserver->Value()==B_CONTROL_ON) system("/system/servers/input_server -q");
 }
 
-void USPrefWindow::MessageReceived(BMessage* message)
+void MainWindow::MessageReceived(BMessage* message)
 {
 	
 	switch(message->what)
@@ -457,12 +428,4 @@ void USPrefWindow::MessageReceived(BMessage* message)
 		default:
 			BWindow::MessageReceived(message);
 	}
-}
-
-int main(int argc, char*argv[])
-{	
-	USPrefApplication	myApplication;
-	myApplication.Run();
-
-	return(0);
 }
