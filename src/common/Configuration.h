@@ -23,6 +23,8 @@ public:
 	
 	bool scrollmousedown[8];
 	bool swallowclick[8];
+
+    static int getButtonDownIndex( int32, int32 );
 private:
 
 };

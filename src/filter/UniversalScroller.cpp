@@ -257,18 +257,9 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 			filterResult=B_SKIP_MESSAGE;
 		
 			// cmdidx is the index of the interclicked command
-			int cmdidx = -1;
-			if ((old_buttons==0) && (buttons==1)) cmdidx=0;
-			if ((old_buttons==1) && (buttons==3)) cmdidx=1;
-			if ((old_buttons==1) && (buttons==5)) cmdidx=2;
-			if ((old_buttons==0) && (buttons==2)) cmdidx=3;
-			if ((old_buttons==2) && (buttons==3)) cmdidx=4;
-			if ((old_buttons==2) && (buttons==6)) cmdidx=5;
-			if ((old_buttons==0) && (buttons==4)) cmdidx=6;
-			if ((old_buttons==4) && (buttons==5)) cmdidx=7;
-			if ((old_buttons==4) && (buttons==6)) cmdidx=8;
+			int cmdidx = Configuration::getButtonDownIndex( old_buttons, buttons );
 
-			if ((cmdidx!=-1) && (!configuration.swallowclick[cmdidx]))
+			if ( ( cmdidx != -1 ) && ( ! configuration.swallowclick[cmdidx] ) )
 			{				
 				switch ( configuration.buttonDownCommand[cmdidx].kind )
 				{
@@ -279,7 +270,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 					    
 						internal_buttons=old_internal_buttons|buttonval[new_button_down];
 
-						//zu langsam für doppelklick
+						//Reset the accumulator, if last click is too far back
 						if ( system_time() - mouseButtonDownLastTime[new_button_down]
 						     > configuration.doubleClickSpeed[new_button_down] )
 						{

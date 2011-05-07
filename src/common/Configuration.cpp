@@ -48,3 +48,18 @@ Configuration::Configuration()
 
 }
 
+int Configuration::getButtonDownIndex( int32 previousButtons, int32 currentButtons )
+{
+	int idx=-1;
+	if ((previousButtons==0) && (currentButtons==1)) idx=0;
+	if ((previousButtons==1) && (currentButtons==3)) idx=1;
+	if ((previousButtons==1) && (currentButtons==5)) idx=2;
+	if ((previousButtons==0) && (currentButtons==2)) idx=3;
+	if ((previousButtons==2) && (currentButtons==3)) idx=4;
+	if ((previousButtons==2) && (currentButtons==6)) idx=5;
+	if ((previousButtons==0) && (currentButtons==4)) idx=6;
+	if ((previousButtons==4) && (currentButtons==5)) idx=7;
+	if ((previousButtons==4) && (currentButtons==6)) idx=8;
+	
+	return idx;
+}
