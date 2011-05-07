@@ -41,7 +41,7 @@ Configuration::Configuration()
 		scrollmousedown[i] = (i>3);
 	}
 
-	for ( i=0; i<8; i++ )
+	for ( i=0; i<9; i++ )
 	{
 		swallowclick[i] = (i>3);
 	}
