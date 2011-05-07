@@ -42,7 +42,9 @@
 #define COPY_MSG 'USCP'
 #define PASTE_MSG 'USPT'
 
-#include "../include/command_strings.h"
+#include "command_strings.h"
+
+#include "Configuration.h"
 
 BTextControl *factorXView[2],*factorYView[2],*speedleftView,*speedmiddleView,*speedrightView;
 BCheckBox *factorsforwheelView,*mousedownView[8],*swallowClickView;
@@ -53,10 +55,12 @@ BTextControl *eventcommand;
 BTextControl *minimumMView,*commandView[2],*workspaceView;
 BCheckBox *passthroughView,*passthroughasdoubleView,*restartinputserver;
 
+#define MAX_COMMAND_LENGTH 250
+
 float factorX[2],factorY[2];
 int minimumM, passthrough,passthroughasdouble;
-char command[9][255];
-bool factorsforwheel,swallowclick[8];
+char command[9][MAX_COMMAND_LENGTH+1];
+bool factorsforwheel,swallowclick[9];
 int primdbltime,secdbltime,tertdbltime;
 
 int commandidx=0;
@@ -78,6 +82,10 @@ public:
 				virtual void	MessageReceived(BMessage* message);
 				virtual	bool	QuitRequested();
 
+	private:
+		Configuration configuration;
+				
+		void updateControlsFromConfiguration( void );
 
 				int LINES;
 
@@ -280,90 +288,66 @@ USPrefWindow::USPrefWindow(BRect frame)
 		
 	AddChild(ButtonPanelBottom);
 
-	
-/*LOADING CONF
-	handle=open("/boot/home/config/add-ons/input_server/filters/UniversalScroller",O_RDWR);
-	if (handle<=0)
-	{
-		system("alert \"UniversalScroller does not seem to be installed.\n\nInstalling it.\" \"OK\"");
-		system("install.sh");
-		handle=open("/boot/home/config/add-ons/input_server/filters/UniversalScroller",O_RDWR);
-	}
-	if (handle>0)
-	{
-	    minimumMView->SetText("0");
-
-    	lseek(handle,OFFSETMINIMUM,0);
-		read(handle,&minimumM,sizeof(int));
-		minimumM=sqrt(minimumM);
-		sprintf(str,"%d",minimumM);
-	    minimumMView->SetText(str);
-
-
-    	lseek(handle,OFFSETFACTORSFORWHEEL,0);
-		read(handle,&boolval,sizeof(bool));
-		if (boolval)
-			factorsforwheelView->SetValue(B_CONTROL_ON);
-    	else
-			factorsforwheelView->SetValue(B_CONTROL_OFF);
-
-		for (i=1;i<8;i++)
-	    {
-	    	lseek(handle,OFFSETSCROLLMOUSEDOWN+i,0);
-			read(handle,&boolval,sizeof(bool));
-			if (boolval)
-				mousedownView[i]->SetValue(B_CONTROL_ON);
-	    	else
-				mousedownView[i]->SetValue(B_CONTROL_OFF);
-		}
-
-		for (i=1;i<8;i++)
-	    {
-	    	lseek(handle,OFFSETSWALLOWCLICK+i,0);
-			read(handle,&swallowclick[i],sizeof(bool));
-		}
-
-		if (swallowclick[0])
-			mousedownView[i]->SetValue(B_CONTROL_ON);
-    	else
-			mousedownView[i]->SetValue(B_CONTROL_OFF);
-
-    	lseek(handle,OFFSETFACTORX0,0);
-		read(handle,&factorX[0],sizeof(float));
-		sprintf(str,"%f",factorX[0]);
-	    factorXView[0]->SetText(str);
-
-    	lseek(handle,OFFSETFACTORY0,0);
-		read(handle,&factorY[0],sizeof(float));
-		sprintf(str,"%f",factorY[0]);
-	    factorYView[0]->SetText(str);
-
-    	lseek(handle,OFFSETFACTORX1,0);
-		read(handle,&factorX[1],sizeof(float));
-		sprintf(str,"%f",factorX[1]);
-	    factorXView[1]->SetText(str);
-
-    	lseek(handle,OFFSETFACTORY1,0);
-		read(handle,&factorY[1],sizeof(float));
-		sprintf(str,"%f",factorY[1]);
-	    factorYView[1]->SetText(str);
-
-    	lseek(handle,OFFSETCMD0,0);
-		read(handle,&command[0],255*9);
-	    eventcommand->SetText(command[0]);
-
-
-	}
-*/
+	updateControlsFromConfiguration();
 
 }
 
+#define MAX_CONF_STR 250
+
+static void downCommandChanger( int commandidx )
+{
+	swallowClickView->SetValue(swallowclick[commandidx]?B_CONTROL_ON:B_CONTROL_OFF);
+	eventcommand->SetText(command[commandidx]);
+}
+
+void USPrefWindow::updateControlsFromConfiguration( void )
+{
+	char str[ MAX_CONF_STR+1 ];
+	int i;
+	
+	// Scrolling --------------------------------------------
+	
+	for (i=1;i<8;i++)
+    {
+		mousedownView[i]->SetValue( configuration.scrollmousedown[i] ? B_CONTROL_ON : B_CONTROL_OFF );
+	}
+
+   	snprintf(str, MAX_CONF_STR, "%d", (int) sqrt(configuration.minScroll) );
+    minimumMView->SetText(str);
+    
+	// Scroll Speed -----------------------------------------
+
+	factorsforwheelView->SetValue( configuration.factorsforwheel ? B_CONTROL_ON : B_CONTROL_OFF );
+
+   	snprintf(str, MAX_CONF_STR, "%.2f", configuration.factorX[0] );
+    factorXView[0]->SetText(str);
+
+   	snprintf(str, MAX_CONF_STR, "%.2f", configuration.factorY[0] );
+    factorYView[0]->SetText(str);
+
+   	snprintf(str, MAX_CONF_STR, "%.2f", configuration.factorX[1] );
+    factorXView[1]->SetText(str);
+
+   	snprintf(str, MAX_CONF_STR, "%.2f", configuration.factorY[1] );
+    factorYView[1]->SetText(str);
+
+   // Clicks ------------------------------------------------
+   
+	for (i=0;i<9;i++)
+    {
+		swallowclick[i]=configuration.swallowclick[i];
+		strncpy( command[i], configuration.buttonDownCommand[i].command, MAX_COMMAND_LENGTH );
+	}
+	downCommandChanger(0);
+}	
 
 bool USPrefWindow::QuitRequested()
 {
-	be_app->PostMessage(B_QUIT_REQUESTED);
-	return(true);
+       be_app->PostMessage(B_QUIT_REQUESTED);
+       return(true);
 }
+
+
 void USPrefWindow::MessageReceived(BMessage* message)
 {
 	char str[63];
@@ -381,21 +365,16 @@ void USPrefWindow::MessageReceived(BMessage* message)
 			system(str);
 		break;
 */
-		case CHANGEEVENTTYPE_MSG:
-			item=popupmenu->Go(BPoint(50+Frame().left,Frame().top+30));
-			if (item!=NULL)
-			{
-				swallowclick[commandidx]=(swallowClickView->Value()==B_CONTROL_ON);
-				strcpy(command[commandidx],eventcommand->Text());
-				for (i=0;i<9;i++)
-					printf("%s\n",command[i]);
-				printf("%d\n",commandidx);
-				eventbtn->SetLabel(item->Label());
-				commandidx=popupmenu->IndexOf(item);
-				printf("%d\n",commandidx);
-				eventcommand->SetText(command[commandidx]);
-				swallowClickView->SetValue(swallowclick[commandidx]?B_CONTROL_ON:B_CONTROL_OFF);
-			}
+		case CHANGEEVENT_MSG+0:
+		case CHANGEEVENT_MSG+1:
+		case CHANGEEVENT_MSG+2:
+		case CHANGEEVENT_MSG+3:
+		case CHANGEEVENT_MSG+4:
+		case CHANGEEVENT_MSG+5:
+		case CHANGEEVENT_MSG+6:
+		case CHANGEEVENT_MSG+7:
+		case CHANGEEVENT_MSG+8:
+			downCommandChanger( message->what-CHANGEEVENT_MSG );
 		break;
 		
 		case LEFT_MSG:

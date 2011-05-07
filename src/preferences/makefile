@@ -26,6 +26,8 @@ TYPE= APP
 #	in folder names do not work well with this makefile.
 SRCS= \
 	Preferences.cpp \
+	../common/ButtonDownCommand.cpp \
+	../common/Configuration.cpp \
 #
 	
 #	specify the resource files to use
@@ -60,7 +62,7 @@ SYSTEM_INCLUDE_PATHS =
 #	additional paths to look for local headers
 #	thes use the form: #include "header"
 #	source file directories are automatically included
-LOCAL_INCLUDE_PATHS = 
+LOCAL_INCLUDE_PATHS = ../include ../common
 
 #	specify the level of optimization that you desire
 #	NONE, SOME, FULL
