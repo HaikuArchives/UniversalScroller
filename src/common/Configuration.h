@@ -9,6 +9,8 @@
 
 #include "ButtonDownCommand.h"
 
+#define SCROLL_MOUSE_DOWN_MASK 7
+
 class Configuration {
 public:
 	Configuration();	

@@ -399,7 +399,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 			{
 			  	message->FindInt32("buttons",&physicalButtonsDown);
 				message->FindInt32("modifiers",&physicalModifiers);
-				if (configuration.scrollmousedown[physicalButtonsDown])
+				if (configuration.scrollmousedown[ physicalButtonsDown & SCROLL_MOUSE_DOWN_MASK ])
 				{	
 					message->FindPoint("where",&physicalPosition_s);
 	
