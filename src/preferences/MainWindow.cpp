@@ -54,7 +54,6 @@
 BTextControl *factorXView[2],*factorYView[2],*speedleftView,*speedmiddleView,*speedrightView;
 BCheckBox *factorsforwheelView,*mousedownView[8],*swallowClickView;
 BPopUpMenu *popupmenu;
-BButton *eventbtn;
 BTextControl *eventcommand;
 
 BTextControl *minimumMView,*commandView[2],*workspaceView;
@@ -76,7 +75,7 @@ BButton *OKButton, *CancelButton;
 MainWindow::MainWindow(BRect frame)
 				: BWindow(frame, "UniversalScroller - Preferences", B_TITLED_WINDOW, B_NOT_RESIZABLE )
 {
-	BView *aView;
+	BView *view;
 	BTabView *tabview;
 	BTab *tab;		
 
@@ -93,91 +92,91 @@ MainWindow::MainWindow(BRect frame)
 	//
 	// S C R O L L V I E W
 	//
-	aView=new BView(frame,"scrollview", B_FOLLOW_ALL, 0 );
-    aView->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
+	view=new BView(frame,"scrollview", B_FOLLOW_ALL, 0 );
+    view->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
 
-	aView->AddChild( new BStringView( BRect(0,5,210,25), NULL, "Use UniversalScrolling for") );
-	aView->AddChild( new BStringView( BRect(0,25,210,45), NULL, "those combinations of buttons:") );
+	view->AddChild( new BStringView( BRect(0,5,210,25), NULL, "Use UniversalScrolling for") );
+	view->AddChild( new BStringView( BRect(0,25,210,45), NULL, "those combinations of buttons:") );
 
 	mousedownView[1]=new BCheckBox(BRect(210,30,500,45),"PT","left",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
-	aView->AddChild(mousedownView[1]);
+	view->AddChild(mousedownView[1]);
 	mousedownView[3]=new BCheckBox(BRect(210,50,500,65),"PT","left+right",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
-	aView->AddChild(mousedownView[3]);
+	view->AddChild(mousedownView[3]);
 	mousedownView[5]=new BCheckBox(BRect(210,70,500,85),"PT","left+middle",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
-	aView->AddChild(mousedownView[5]);
+	view->AddChild(mousedownView[5]);
 	mousedownView[7]=new BCheckBox(BRect(210,90,500,105),"PT","left+middle+right",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
-	aView->AddChild(mousedownView[7]);
+	view->AddChild(mousedownView[7]);
 	mousedownView[4]=new BCheckBox(BRect(210,110,500,125),"PT","middle",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
-	aView->AddChild(mousedownView[4]);
+	view->AddChild(mousedownView[4]);
 	mousedownView[6]=new BCheckBox(BRect(210,130,500,145),"PT","middle+right",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
-	aView->AddChild(mousedownView[6]);
+	view->AddChild(mousedownView[6]);
 	mousedownView[2]=new BCheckBox(BRect(210,150,500,165),"PT","right",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
-	aView->AddChild(mousedownView[2]);
+	view->AddChild(mousedownView[2]);
 
-	aView->AddChild(new BStringView(BRect(0,170,210,190),"SOME","Minimal mouse movement to"));
-	aView->AddChild(new BStringView(BRect(0,190,210,215),"SOME","start UniversalScrolling:"));
+	view->AddChild(new BStringView(BRect(0,170,210,190),"SOME","Minimal mouse movement to"));
+	view->AddChild(new BStringView(BRect(0,190,210,215),"SOME","start UniversalScrolling:"));
 	minimumMView=new BTextControl(BRect(210,190,310,215),"MM","","0",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
 	minimumMView->SetDivider(0);
-	aView->AddChild(minimumMView);
+	view->AddChild(minimumMView);
 
 
 	
 	tab=new BTab();
-	tabview->AddTab(aView,tab);
+	tabview->AddTab(view,tab);
 	tab->SetLabel("Scrolling");	
 	
 	//
 	// S P E E D V I E W
 	//
-	aView=new BView(frame,"speedview",0,0);
-    aView->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
+	view=new BView(frame,"speedview",0,0);
+    view->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
 
 	factorsforwheelView=new BCheckBox(BRect(0,5,500,25),"PT","Use below factors for scroll-wheels",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	aView->AddChild(factorsforwheelView);
+	view->AddChild(factorsforwheelView);
 
-	aView->AddChild(new BStringView(BRect(20,35,500,55),"SOME","normal Scroll-Speed"));
+	view->AddChild(new BStringView(BRect(20,35,500,55),"SOME","normal Scroll-Speed"));
 
 	factorXView[0]=new BTextControl(BRect(40,55,200,75),"X0","Factor X","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
 	factorXView[0]->SetDivider(70);
-	aView->AddChild(factorXView[0]);
+	view->AddChild(factorXView[0]);
 
 	factorYView[0]=new BTextControl(BRect(40,75,200,95),"Y1","Factor Y","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
 	factorYView[0]->SetDivider(70);
-	aView->AddChild(factorYView[0]);
+	view->AddChild(factorYView[0]);
 
-	aView->AddChild(new BStringView(BRect(20,105,500,125),"SOME","fast Scroll-Speed"));
+	view->AddChild(new BStringView(BRect(20,105,500,125),"SOME","fast Scroll-Speed"));
 
 	factorXView[1]=new BTextControl(BRect(40,125,200,145),"X1","Factor X","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
 	factorXView[1]->SetDivider(70);
-	aView->AddChild(factorXView[1]);
+	view->AddChild(factorXView[1]);
 
 	factorYView[1]=new BTextControl(BRect(40,145,200,165),"Y1","Factor Y","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
 	factorYView[1]->SetDivider(70);
-	aView->AddChild(factorYView[1]);
+	view->AddChild(factorYView[1]);
 
-/*	aView->AddChild(new BStringView(BRect(170,10,320,25),"SOME","Double-click time (in millisecs)"));
+/*	view->AddChild(new BStringView(BRect(170,10,320,25),"SOME","Double-click time (in millisecs)"));
 	speedleftView=new BTextControl(BRect(190,30,320,65),"PrimButton","Primary Button","350",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
 	speedleftView->SetDivider(90);
-	aView->AddChild(speedleftView);
+	view->AddChild(speedleftView);
 	speedrightView=new BTextControl(BRect(190,30+20,320,65+20),"SecButton","Secondary Button","350",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
 	speedrightView->SetDivider(90);
-	aView->AddChild(speedrightView);
+	view->AddChild(speedrightView);
 	speedmiddleView=new BTextControl(BRect(190,30+40,320,65+40),"SecButton","Tertiary Button","350",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
 	speedmiddleView->SetDivider(90);
-	aView->AddChild(speedmiddleView);
+	view->AddChild(speedmiddleView);
 */
 
 	tab=new BTab();
-	tabview->AddTab(aView,tab);
+	tabview->AddTab(view,tab);
 	tab->SetLabel("Scroll-Speed");	
 	
 
 	//
 	// C L I C K V I E W
 	//
-	aView=new BView(frame,"clickview",0,0);
-    aView->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
-	aView->AddChild(new BStringView(BRect(10,10,300,25),NULL,"What to do when ..."));
+	view=new BView(frame,"clickview",0,0);
+    view->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
+	view->AddChild(new BStringView(BRect(10,10,300,25),NULL,"What to do when ..."));
 	
 	BMenu *menu;
 	menu = new BMenu( "" );
@@ -196,33 +195,30 @@ MainWindow::MainWindow(BRect frame)
 	BMenuField *menuField;
 	menuField = new BMenuField( BRect( 20, 30, 340, 55 ), NULL, NULL, menu );
 	
-	aView->AddChild( menuField );
+	view->AddChild( menuField );
 	
-	eventbtn=new BButton(BRect(20,30,340,55),"selmouse","left down",new BMessage(CHANGEEVENTTYPE_MSG));
-	//aView->AddChild(eventbtn);
-	
-	swallowClickView=new BCheckBox(BRect(20,70,500,90),"PT","swallow this click",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	aView->AddChild(swallowClickView);
+	swallowClickView=new BCheckBox(BRect(20,70,500,90), NULL, "swallow this click", NULL, B_FOLLOW_LEFT_RIGHT, B_WILL_DRAW|B_NAVIGABLE);
+	view->AddChild(swallowClickView);
 
-	eventcommand=new BTextControl(BRect(10,95,340,115),"EQU","","",NULL);
+	eventcommand=new BTextControl(BRect(10,95,340,115), NULL, "", "", NULL);
 	eventcommand->SetDivider(0);
-	aView->AddChild(eventcommand);
+	view->AddChild(eventcommand);
 	
-	aView->AddChild(new BButton(BRect( 10,125,120,150),"selmouse","Left Sgl Click",new BMessage(LEFT_MSG)));
-	aView->AddChild(new BButton(BRect(120,125,230,150),"selmouse","Middle Sgl Click",new BMessage(MIDDLE_MSG)));
-	aView->AddChild(new BButton(BRect(230,125,340,150),"selmouse","Right Sgl Click",new BMessage(RIGHT_MSG)));
+	view->AddChild(new BButton(BRect( 10,125,120,150), NULL, "Left Sgl Click",new BMessage(LEFT_MSG)));
+	view->AddChild(new BButton(BRect(120,125,230,150), NULL, "Middle Sgl Click",new BMessage(MIDDLE_MSG)));
+	view->AddChild(new BButton(BRect(230,125,340,150), NULL, "Right Sgl Click",new BMessage(RIGHT_MSG)));
 	
-	aView->AddChild(new BButton(BRect( 10,150,120,175),"selmouse","Left Dbl Click",new BMessage(LEFTDBL_MSG)));
-	aView->AddChild(new BButton(BRect(120,150,230,175),"selmouse","Middle Dbl Click",new BMessage(MIDDLEDBL_MSG)));
-	aView->AddChild(new BButton(BRect(230,150,340,175),"selmouse","Right Dbl Click",new BMessage(RIGHTDBL_MSG)));
+	view->AddChild(new BButton(BRect( 10,150,120,175), NULL, "Left Dbl Click",new BMessage(LEFTDBL_MSG)));
+	view->AddChild(new BButton(BRect(120,150,230,175), NULL, "Middle Dbl Click",new BMessage(MIDDLEDBL_MSG)));
+	view->AddChild(new BButton(BRect(230,150,340,175), NULL, "Right Dbl Click",new BMessage(RIGHTDBL_MSG)));
 
-	aView->AddChild(new BButton(BRect( 10,175,120,200),"selmouse","Cut",new BMessage(CUT_MSG)));
-	aView->AddChild(new BButton(BRect(120,175,230,200),"selmouse","Copy",new BMessage(COPY_MSG)));
-	aView->AddChild(new BButton(BRect(230,175,340,200),"selmouse","Paste",new BMessage(PASTE_MSG)));
+	view->AddChild(new BButton(BRect( 10,175,120,200), NULL, "Cut",new BMessage(CUT_MSG)));
+	view->AddChild(new BButton(BRect(120,175,230,200), NULL, "Copy",new BMessage(COPY_MSG)));
+	view->AddChild(new BButton(BRect(230,175,340,200), NULL, "Paste",new BMessage(PASTE_MSG)));
 
 
 	tab=new BTab();
-	tabview->AddTab(aView,tab);
+	tabview->AddTab(view,tab);
 	tab->SetLabel("Clicks");	
 	
 
