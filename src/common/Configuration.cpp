@@ -19,10 +19,10 @@ Configuration::Configuration()
 	this->doubleClickSpeed[1]=250000;
 	this->doubleClickSpeed[2]=250000;
 
-	this->factorX[0]=0.1;
-	this->factorY[0]=0.1;
-	this->factorX[1]=1.0;
-	this->factorY[1]=1.0;
+	this->factorX[0]= 1.0;
+	this->factorY[0]= 1.0;
+	this->factorX[1]=10.0;
+	this->factorY[1]=10.0;
 	factorsforwheel=true;
 
 	i=0;
