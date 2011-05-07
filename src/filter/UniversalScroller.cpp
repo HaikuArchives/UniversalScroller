@@ -231,220 +231,213 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 	filter_result filterResult = B_DISPATCH_MESSAGE;
 
   
- int32 buttonval[6]={B_PRIMARY_MOUSE_BUTTON,B_SECONDARY_MOUSE_BUTTON,B_TERTIARY_MOUSE_BUTTON,
-                     B_PRIMARY_MOUSE_BUTTON,B_SECONDARY_MOUSE_BUTTON,B_TERTIARY_MOUSE_BUTTON};
-
- //so now for the switching
- switch (message->what)
- {
-	case B_MODIFIERS_CHANGED:
+	switch (message->what)
+	{
+		case B_MODIFIERS_CHANGED:
 		
-		message->FindInt32("modifiers",&physicalModifiers);
-		
-		physicalIsShiftKeyDown_s  = IS_MODIFIER_SET( B_SHIFT_KEY   );
-		physicalIsControlKeyDown_s= IS_MODIFIER_SET( B_CONTROL_KEY );
-		physicalIsAltKeyDown_s    = IS_MODIFIER_SET( B_OPTION_KEY  );
-		
-		if ((physicalIsAltKeyDown_s) && (virtualButtonsDown_s!=0))
-		{
-			virtualButtonsDown_s=0;
-			physicalButtonsDown_s=0;
-			
-			SEND_MOUSE_UP( virtualButtonsDown_s );
-		}
-		break;
-	
-	case B_MOUSE_WHEEL_CHANGED:
-		float hfloat;
-	  	if ((!physicalIsAltKeyDown_s) && ((physicalIsShiftKeyDown_s) || (configuration.factorsforwheel)))
-	  	{                               
-			float deltaX, deltaY;
- 	  		message->FindFloat("be:wheel_delta_x",&deltaX);
-	  		message->FindFloat("be:wheel_delta_y",&deltaY);
-
-			// If the shift key is down, x and y axis get swapped.
-			// Thereby mice with a single scroll wheel can be used to scroll
-			// in both directions
-			if (physicalIsShiftKeyDown_s)
-			{
-				float tmpFloat;
-				tmpFloat = deltaX;
-				deltaX   = deltaY;
-				deltaY   = tmpFloat;
-			}
-						
-		  	if (configuration.factorsforwheel) 
-		  	{
-		  		deltaX *= configuration.factorX[ physicalIsControlKeyDown_s ? 1 : 0 ];
-		 		deltaY *= configuration.factorY[ physicalIsControlKeyDown_s ? 1 : 0 ];
-		 	}
-
-			CREATE_MSG( B_MOUSE_WHEEL_CHANGED );
-		  	msg->AddFloat("be:wheel_delta_x",deltaX);
-	  		msg->AddFloat("be:wheel_delta_y",deltaY);
-	  		ENLIST_MSG();
-	  	}
-		break;
-		
-	case B_MOUSE_DOWN:
-		if (!physicalIsAltKeyDown_s)
-		{
-		  	message->FindPoint("where",&physicalButtonDownPosition_s);
-		  	message->FindInt32("buttons",&physicalButtonsDown);
 			message->FindInt32("modifiers",&physicalModifiers);
 		
-			// cmdidx is the index of the interclicked command
-			int cmdidx = Configuration::getButtonDownIndex( physicalButtonsDown_s, physicalButtonsDown );
+			physicalIsShiftKeyDown_s  = IS_MODIFIER_SET( B_SHIFT_KEY   );
+			physicalIsControlKeyDown_s= IS_MODIFIER_SET( B_CONTROL_KEY );
+			physicalIsAltKeyDown_s    = IS_MODIFIER_SET( B_OPTION_KEY  );
+		
+			if ((physicalIsAltKeyDown_s) && (virtualButtonsDown_s!=0))
+			{
+				virtualButtonsDown_s=0;
+				physicalButtonsDown_s=0;
+			
+				SEND_MOUSE_UP( virtualButtonsDown_s );
+			}
+			break;
+	
+		case B_MOUSE_WHEEL_CHANGED:
+			float hfloat;
+		  	if ((!physicalIsAltKeyDown_s) && ((physicalIsShiftKeyDown_s) || (configuration.factorsforwheel)))
+		  	{                               
+				float deltaX, deltaY;
+ 		  		message->FindFloat("be:wheel_delta_x",&deltaX);
+		  		message->FindFloat("be:wheel_delta_y",&deltaY);
 
-			if ( ( cmdidx != -1 ) && ( ! configuration.swallowclick[cmdidx] ) )
-			{			
-				int new_button_down=0;	
-				int new_clicks=0;
+				// If the shift key is down, x and y axis get swapped.
+				// Thereby mice with a single scroll wheel can be used to scroll
+				// in both directions
+				if (physicalIsShiftKeyDown_s)
+				{
+					float tmpFloat;
+					tmpFloat = deltaX;
+					deltaX   = deltaY;
+					deltaY   = tmpFloat;
+				}
+						
+			  	if (configuration.factorsforwheel) 
+			  	{
+			  		deltaX *= configuration.factorX[ physicalIsControlKeyDown_s ? 1 : 0 ];
+			 		deltaY *= configuration.factorY[ physicalIsControlKeyDown_s ? 1 : 0 ];
+			 	}
+
+				CREATE_MSG( B_MOUSE_WHEEL_CHANGED );
+			  	msg->AddFloat("be:wheel_delta_x",deltaX);
+		  		msg->AddFloat("be:wheel_delta_y",deltaY);
+		  		ENLIST_MSG();
+		  	}
+			break;
+		
+		case B_MOUSE_DOWN:
+			if (!physicalIsAltKeyDown_s)
+			{
+			  	message->FindPoint("where",&physicalButtonDownPosition_s);
+			  	message->FindInt32("buttons",&physicalButtonsDown);
+				message->FindInt32("modifiers",&physicalModifiers);
+		
+				// cmdidx is the index of the interclicked command
+				int cmdidx = Configuration::getButtonDownIndex( physicalButtonsDown_s, physicalButtonsDown );
+
+				if ( ( cmdidx != -1 ) && ( ! configuration.swallowclick[cmdidx] ) )
+				{			
+					int new_button_down=0;	
+					int new_clicks=0;
 				
-				switch ( configuration.buttonDownCommand[cmdidx].kind )
-				{
+					switch ( configuration.buttonDownCommand[cmdidx].kind )
+					{
 
-					case button:
- 					    new_button_down=configuration.buttonDownCommand[cmdidx].mouseButtonIndex;
-					    new_clicks=configuration.buttonDownCommand[cmdidx].mouseButtonClicks;
+						case button:
+ 						    new_button_down=configuration.buttonDownCommand[cmdidx].mouseButtonIndex;
+						    new_clicks=configuration.buttonDownCommand[cmdidx].mouseButtonClicks;
 					    
-						virtualButtonsDown = virtualButtonsDown_s | ( ButtonDownCommand::mouseButtonIndexToMask( new_button_down ));
+							virtualButtonsDown = virtualButtonsDown_s | ( ButtonDownCommand::mouseButtonIndexToMask( new_button_down ));
 
-						//Reset the accumulator, if last click is too far back
-						if ( system_time() - virtualButtonDownTime_s[new_button_down]
-						     > configuration.doubleClickSpeed[new_button_down] )
-						{
-							virtualClickAccumulator_s[new_button_down]=0;
-						}
-							
-						virtualButtonDownTime_s[new_button_down]=system_time();
-						
-						while (new_clicks>0)
-						{
-							virtualClickAccumulator_s[new_button_down]++;
-							new_clicks--;
-							CREATE_MSG( B_MOUSE_DOWN );
-							msg->AddPoint("where",physicalButtonDownPosition_s);
-							msg->AddInt32("modifiers",physicalModifiers);
-							msg->AddInt32("buttons",virtualButtonsDown);
-							msg->AddInt32("clicks",virtualClickAccumulator_s[new_button_down]);
-							ENLIST_MSG();
-						
-							if (new_clicks>0)
+							//Reset the accumulator, if last click is too far back
+							if ( system_time() - virtualButtonDownTime_s[new_button_down]
+							     > configuration.doubleClickSpeed[new_button_down] )
 							{
-								SEND_MOUSE_UP( virtualButtonsDown_s );
-							}	
-						}
+								virtualClickAccumulator_s[new_button_down]=0;
+							}
+							
+							virtualButtonDownTime_s[new_button_down]=system_time();
+						
+							while (new_clicks>0)
+							{
+								virtualClickAccumulator_s[new_button_down]++;
+								new_clicks--;
+								CREATE_MSG( B_MOUSE_DOWN );
+								msg->AddPoint("where",physicalButtonDownPosition_s);
+								msg->AddInt32("modifiers",physicalModifiers);
+								msg->AddInt32("buttons",virtualButtonsDown);
+								msg->AddInt32("clicks",virtualClickAccumulator_s[new_button_down]);
+								ENLIST_MSG();
+						
+								if (new_clicks>0)
+								{
+									SEND_MOUSE_UP( virtualButtonsDown_s );
+								}	
+							}
 					
-						virtualButtonsDown_s=virtualButtonsDown;
-						break;
+							virtualButtonsDown_s=virtualButtonsDown;
+							break;
 											
-					case key:
-						simulate_keypress( configuration.buttonDownCommand[cmdidx].command, physicalModifiers, outList );
-						break;
+						case key:
+							simulate_keypress( configuration.buttonDownCommand[cmdidx].command, physicalModifiers, outList );
+							break;
 						
-					case cut:
-						CREATE_OLD_MSG( 'CCUT' );
-						ENLIST_MSG();	
-						break;	
+						case cut:
+							CREATE_OLD_MSG( 'CCUT' );
+							ENLIST_MSG();	
+							break;	
 
-					case copy:
-						CREATE_OLD_MSG( 'COPY' );
-						ENLIST_MSG();	
-						break;
+						case copy:
+							CREATE_OLD_MSG( 'COPY' );
+							ENLIST_MSG();	
+							break;
 
-					case paste:
-						CREATE_OLD_MSG( 'PSTE' );
-						ENLIST_MSG();	
-						break;
+						case paste:
+							CREATE_OLD_MSG( 'PSTE' );
+							ENLIST_MSG();	
+							break;
 						
-					case executable:
-						TMsystem( configuration.buttonDownCommand[cmdidx].command );
-						filterResult=B_SKIP_MESSAGE;						
-						break;		
-				}
+						case executable:
+							TMsystem( configuration.buttonDownCommand[cmdidx].command );
+							filterResult=B_SKIP_MESSAGE;						
+							break;		
+					}
 				 				
-			} else {
-				filterResult=B_SKIP_MESSAGE;
+				} else {
+					filterResult=B_SKIP_MESSAGE;
+				}
+				physicalButtonsDown_s = physicalButtonsDown;
 			}
-			physicalButtonsDown_s = physicalButtonsDown;
-		}
-  	break;	
+  			break;	
 
-	case B_MOUSE_UP:
-		int i;
-		char str[31];
-	
-		if (!physicalIsAltKeyDown_s)
-		{
-		  	message->FindPoint("where",&physicalPosition_s);
-		  	message->FindInt32("buttons",&physicalButtonsDown);
-			message->FindInt32("modifiers",&physicalModifiers);
-	
-			filterResult=B_SKIP_MESSAGE;
-			
-			if (virtualButtonsDown_s!=0)
+		case B_MOUSE_UP:
+			if (!physicalIsAltKeyDown_s)
 			{
-				if (physicalButtonsDown==0)
+			  	message->FindPoint("where",&physicalPosition_s);
+			  	message->FindInt32("buttons",&physicalButtonsDown);
+				message->FindInt32("modifiers",&physicalModifiers);
+	
+				filterResult=B_SKIP_MESSAGE;
+			
+				if (virtualButtonsDown_s!=0)
 				{
-					SEND_MOUSE_UP( 0 );
-					filterResult=B_DISPATCH_MESSAGE;
-					virtualButtonsDown_s=0;
-				}
-				else
-				{
-					int cmdidx;
-					virtualButtonsDown=0;
-					
-
-					REBUILD_VIRTUAL_BUTTONS_DOWN_FROM_PRESSED( B_PRIMARY_MOUSE_BUTTON   );	
-					REBUILD_VIRTUAL_BUTTONS_DOWN_FROM_PRESSED( B_SECONDARY_MOUSE_BUTTON );	
-					REBUILD_VIRTUAL_BUTTONS_DOWN_FROM_PRESSED( B_TERTIARY_MOUSE_BUTTON  );	
-					
-					if (virtualButtonsDown!=virtualButtonsDown_s)
+					if (physicalButtonsDown==0)
 					{
-						SEND_MOUSE_UP( virtualButtonsDown_s );
+						SEND_MOUSE_UP( 0 );
 						filterResult=B_DISPATCH_MESSAGE;
-						virtualButtonsDown_s=virtualButtonsDown;
-					}
-				}
-			}
-			physicalButtonsDown_s=physicalButtonsDown;
-		}
-  	break;	
-	
-	case B_MOUSE_MOVED:
-		if (!physicalIsAltKeyDown_s)
-		{
-		  	message->FindInt32("buttons",&physicalButtonsDown);
-			message->FindInt32("modifiers",&physicalModifiers);
-			if (configuration.scrollmousedown[physicalButtonsDown])
-			{	
-				message->FindPoint("where",&physicalPosition_s);
-
- 				float deltaX = configuration.factorX[physicalIsControlKeyDown_s?1:0] * (physicalPosition_s.x-physicalButtonDownPosition_s.x);
-				float deltaY = configuration.factorY[physicalIsControlKeyDown_s?1:0] * (physicalPosition_s.y-physicalButtonDownPosition_s.y);
-
-				if ((deltaX*deltaX>configuration.minScroll) || (deltaY*deltaY>configuration.minScroll))
-				{	
-					if (virtualButtonsDown_s!=0)
-					{
-						SEND_MOUSE_UP( 0 );					
 						virtualButtonsDown_s=0;
-					
 					}
+					else
+					{
+						int cmdidx;
+						virtualButtonsDown=0;
 					
-					CREATE_MSG( B_MOUSE_WHEEL_CHANGED );
-				  	if (physicalIsShiftKeyDown_s) {hfloat=deltaX;deltaX=deltaY;deltaY=hfloat;}
-		  			msg->AddFloat("be:wheel_delta_x",deltaX); //so swap x and y here
-		  			msg->AddFloat("be:wheel_delta_y",deltaY);
-			  		ENLIST_MSG();
+
+						REBUILD_VIRTUAL_BUTTONS_DOWN_FROM_PRESSED( B_PRIMARY_MOUSE_BUTTON   );	
+						REBUILD_VIRTUAL_BUTTONS_DOWN_FROM_PRESSED( B_SECONDARY_MOUSE_BUTTON );	
+						REBUILD_VIRTUAL_BUTTONS_DOWN_FROM_PRESSED( B_TERTIARY_MOUSE_BUTTON  );	
+					
+						if (virtualButtonsDown!=virtualButtonsDown_s)
+						{
+							SEND_MOUSE_UP( virtualButtonsDown_s );
+							filterResult=B_DISPATCH_MESSAGE;
+							virtualButtonsDown_s=virtualButtonsDown;
+						}
+					}
 				}
-	
+				physicalButtonsDown_s=physicalButtonsDown;
 			}
-		}
-  	break;	
+  		break;	
 	
- }
- return filterResult;
+		case B_MOUSE_MOVED:
+			if (!physicalIsAltKeyDown_s)
+			{
+			  	message->FindInt32("buttons",&physicalButtonsDown);
+				message->FindInt32("modifiers",&physicalModifiers);
+				if (configuration.scrollmousedown[physicalButtonsDown])
+				{	
+					message->FindPoint("where",&physicalPosition_s);
+	
+ 					float deltaX = configuration.factorX[physicalIsControlKeyDown_s?1:0] * (physicalPosition_s.x-physicalButtonDownPosition_s.x);
+					float deltaY = configuration.factorY[physicalIsControlKeyDown_s?1:0] * (physicalPosition_s.y-physicalButtonDownPosition_s.y);
+	
+					if ((deltaX*deltaX>configuration.minScroll) || (deltaY*deltaY>configuration.minScroll))
+					{	
+						if (virtualButtonsDown_s!=0)
+						{
+							SEND_MOUSE_UP( 0 );					
+							virtualButtonsDown_s=0;
+						
+						}
+						
+						CREATE_MSG( B_MOUSE_WHEEL_CHANGED );
+					  	if (physicalIsShiftKeyDown_s) {hfloat=deltaX;deltaX=deltaY;deltaY=hfloat;}
+			  			msg->AddFloat("be:wheel_delta_x",deltaX); //so swap x and y here
+			  			msg->AddFloat("be:wheel_delta_y",deltaY);
+				  		ENLIST_MSG();
+					}
+		
+				}
+			}
+  		break;	
+	
+ 	}
+ 	return filterResult;
 }
