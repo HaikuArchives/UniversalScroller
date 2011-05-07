@@ -65,11 +65,11 @@ status_t UniversalScroller::InitCheck()
 #define SEND_MOUSE_UP( BUTTONS ) \
 	CREATE_MSG( B_MOUSE_UP ); \
 	msg->AddPoint("where",mousePosition); \
-	msg->AddInt32("modifiers",modifiers); \
+	msg->AddInt32("modifiers",physicalModifiers); \
 	msg->AddInt32("buttons", BUTTONS ); \
 	ENLIST_MSG();	
 
-#define IS_MODIFIER_SET( MODIFIER )  ( ( modifiers & MODIFIER ) == MODIFIER )
+#define IS_MODIFIER_SET( MODIFIER )  ( ( physicalModifiers & MODIFIER ) == MODIFIER )
 
 #define SET_VIRTUAL_MODIFIER( MODIFIER, MODIFIER_MASK ) \
 	if ( strncmp( command+offset, MODIFIER, strlen( MODIFIER ) ) == 0 ) \
@@ -84,7 +84,7 @@ status_t UniversalScroller::InitCheck()
  		toProcess=strstr(toProcess,"_")+1;  \
 	}
 	
-void simulate_keypress( const char *command, int32 modifiers, BList *outList )
+void simulate_keypress( const char *command, int32 physicalModifiers, BList *outList )
 {
 	//format of commans is: "KEY_SHIFT_OPTION_CONTROL_key_raw-char_byte_#bytes_byte0[_byte1[_byte2]]_bytesZ"
 
@@ -120,7 +120,7 @@ void simulate_keypress( const char *command, int32 modifiers, BList *outList )
 	
 	CREATE_MSG( B_MODIFIERS_CHANGED );
 	msg->AddInt32("modifiers",virtual_modifiers);
-	msg->AddInt32("be:old_modifiers",modifiers);
+	msg->AddInt32("be:old_modifiers",physicalModifiers);
 	ENLIST_MSG();	
 	
 	CREATE_MSG( B_KEY_DOWN );
@@ -144,7 +144,7 @@ void simulate_keypress( const char *command, int32 modifiers, BList *outList )
 	ENLIST_MSG();	
 	
 	CREATE_MSG( B_MODIFIERS_CHANGED );
-	msg->AddInt32("modifiers",modifiers);
+	msg->AddInt32("modifiers",physicalModifiers);
 	msg->AddInt32("be:old_modifiers",virtual_modifiers);
 	ENLIST_MSG();	
 	
@@ -177,7 +177,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
  static int64 mouseButtonDownLastTime[3]={0,0,0};
  
  // the set modifier keys (Shift, Control, ...) that are currently pressed
- int32 modifiers;
+ int32 physicalModifiers;
 
  // the accumulator for the number of clicks of primary, secondary and tertiary
  // mouse buttons, to allow double, triple, ... clicks 
@@ -204,7 +204,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
  {
 	case B_MODIFIERS_CHANGED:
 		
-		message->FindInt32("modifiers",&modifiers);
+		message->FindInt32("modifiers",&physicalModifiers);
 		
 		isShiftKeyDown  = IS_MODIFIER_SET( B_SHIFT_KEY   );
 		isControlKeyDown= IS_MODIFIER_SET( B_CONTROL_KEY );
@@ -256,7 +256,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 		{
 		  	message->FindPoint("where",&mouseButtonDownPosition);
 		  	message->FindInt32("buttons",&physicalButtonsDown);
-			message->FindInt32("modifiers",&modifiers);
+			message->FindInt32("modifiers",&physicalModifiers);
 		
 			// cmdidx is the index of the interclicked command
 			int cmdidx = Configuration::getButtonDownIndex( physicalButtonsDown_s, physicalButtonsDown );
@@ -290,7 +290,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 							new_clicks--;
 							CREATE_MSG( B_MOUSE_DOWN );
 							msg->AddPoint("where",mouseButtonDownPosition);
-							msg->AddInt32("modifiers",modifiers);
+							msg->AddInt32("modifiers",physicalModifiers);
 							msg->AddInt32("buttons",virtualButtonsDown);
 							msg->AddInt32("clicks",clickAccumulator[new_button_down]);
 							ENLIST_MSG();
@@ -305,7 +305,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 						break;
 											
 					case key:
-						simulate_keypress( configuration.buttonDownCommand[cmdidx].command, modifiers, outList );
+						simulate_keypress( configuration.buttonDownCommand[cmdidx].command, physicalModifiers, outList );
 						break;
 						
 					case cut:
@@ -344,7 +344,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 		{
 		  	message->FindPoint("where",&mousePosition);
 		  	message->FindInt32("buttons",&physicalButtonsDown);
-			message->FindInt32("modifiers",&modifiers);
+			message->FindInt32("modifiers",&physicalModifiers);
 	
 			filterResult=B_SKIP_MESSAGE;
 			
@@ -412,7 +412,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 		if (!isAltKeyDown)
 		{
 		  	message->FindInt32("buttons",&physicalButtonsDown);
-			message->FindInt32("modifiers",&modifiers);
+			message->FindInt32("modifiers",&physicalModifiers);
 			if (configuration.scrollmousedown[physicalButtonsDown])
 			{	
 				message->FindPoint("where",&mousePosition);
