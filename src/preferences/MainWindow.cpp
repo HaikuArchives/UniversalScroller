@@ -47,22 +47,7 @@
 #include "MainWindow.h"
 
 
-// Pointers to the relevant Controls
-BTextControl *wheelFactorX_ctrl[2],*wheelFactorY_ctrl[2];
-BCheckBox *useWheelFactors_ctrl,*scrollWhenMouseDown_ctrl[8],*swallowClick_ctrl;
-BTextControl *command_ctrl;
-BTextControl *minScroll_ctrl;
-BCheckBox *restartInputServer_ctrl;
-
 #define MAX_CONF_STR 250
-
-float wheelFactorX[2],wheelFactorY[2];
-int minimumM, passthrough,passthroughasdouble;
-char command[9][MAX_COMMAND_LENGTH+1];
-bool useWheelFactors,swallowClick[9];
-
-int commandidx=0;
-
 
 MainWindow::MainWindow(BRect frame)
 				: BWindow(frame, "UniversalScroller - Preferences", B_TITLED_WINDOW, B_NOT_RESIZABLE )
@@ -217,10 +202,10 @@ MainWindow::MainWindow(BRect frame)
 
 }
 
-static void downCommandChanger( int commandidx )
+void MainWindow::setCommandControl( int commandidx )
 {
-	swallowClick_ctrl->SetValue(swallowClick[commandidx]?B_CONTROL_ON:B_CONTROL_OFF);
-	command_ctrl->SetText(command[commandidx]);
+	swallowClick_ctrl->SetValue(configuration.swallowClick[commandidx]?B_CONTROL_ON:B_CONTROL_OFF);
+	command_ctrl->SetText(configuration.buttonDownCommand[commandidx].command);
 }
 
 void MainWindow::updateControlsFromConfiguration( void )
@@ -256,12 +241,7 @@ void MainWindow::updateControlsFromConfiguration( void )
 
    // Clicks ------------------------------------------------
    
-	for (i=0;i<9;i++)
-    {
-		swallowClick[i]=configuration.swallowClick[i];
-		strncpy( command[i], configuration.buttonDownCommand[i].command, MAX_COMMAND_LENGTH );
-	}
-	downCommandChanger(0);
+	setCommandControl( 0 );
 }	
 
 bool MainWindow::QuitRequested()
@@ -270,66 +250,64 @@ bool MainWindow::QuitRequested()
        return(true);
 }
 
-static void okClick(void)
+void MainWindow::preserveSettings(void)
 {
-	bool boolval;
-
-			long i;
-		
-		
 		return;	
 			
-			int handle=open("/boot/home/config/add-ons/input_server/filters/UniversalScroller",O_RDWR);
+//			int handle=open("/boot/home/config/add-ons/input_server/filters/UniversalScroller",O_RDWR);
 
 
-		swallowClick[commandidx]=(swallowClick_ctrl->Value()==B_CONTROL_ON);
+//		swallowClick[commandidx]=(swallowClick_ctrl->Value()==B_CONTROL_ON);
 
 
     	//lseek(handle,OFFSETFACTORSFORWHEEL,0);
-		boolval=(useWheelFactors_ctrl->Value()==B_CONTROL_ON);
-		write(handle,&boolval,sizeof(bool));
+//		boolval=(useWheelFactors_ctrl->Value()==B_CONTROL_ON);
+//		write(handle,&boolval,sizeof(bool));
 
-		for (i=1;i<8;i++)
-	    {
-	    	//lseek(handle,OFFSETSCROLLMOUSEDOWN+i,0);
-			boolval=(scrollWhenMouseDown_ctrl[i]->Value()==B_CONTROL_ON);
-			write(handle,&boolval,sizeof(bool));
-		}
-		for (i=1;i<8;i++)
-	    {
-	    	//lseek(handle,OFFSETswallowClick+i,0);
-			write(handle,&swallowClick[i],sizeof(bool));
-		}
+//		for (i=1;i<8;i++)
+//	    {
+//	    	//lseek(handle,OFFSETSCROLLMOUSEDOWN+i,0);
+//			boolval=(scrollWhenMouseDown_ctrl[i]->Value()==B_CONTROL_ON);
+//			write(handle,&boolval,sizeof(bool));
+//		}
+//		for (i=1;i<8;i++)
+//	    {
+//	    	//lseek(handle,OFFSETswallowClick+i,0);
+//			write(handle,&swallowClick[i],sizeof(bool));
+//		}
 		
-		sscanf(wheelFactorX_ctrl[0]->Text(),"%f",&wheelFactorX[0]);
-		sscanf(wheelFactorY_ctrl[0]->Text(),"%f",&wheelFactorY[0]);
-		sscanf(wheelFactorX_ctrl[1]->Text(),"%f",&wheelFactorX[1]);
-		sscanf(wheelFactorY_ctrl[1]->Text(),"%f",&wheelFactorY[1]);
-		sscanf(minScroll_ctrl->Text(),"%u",&minimumM);
-		minimumM=minimumM*minimumM;
+//		sscanf(wheelFactorX_ctrl[0]->Text(),"%f",&wheelFactorX[0]);
+//		sscanf(wheelFactorY_ctrl[0]->Text(),"%f",&wheelFactorY[0]);
+//		sscanf(wheelFactorX_ctrl[1]->Text(),"%f",&wheelFactorX[1]);
+//		sscanf(wheelFactorY_ctrl[1]->Text(),"%f",&wheelFactorY[1]);
+//		sscanf(minScroll_ctrl->Text(),"%u",&minimumM);
+//		minimumM=minimumM*minimumM;
 
 
     	//lseek(handle,OFFSETFACTORX0,0);
-		write(handle,&wheelFactorX[0],sizeof(float));
+//		write(handle,&wheelFactorX[0],sizeof(float));
 
     	//lseek(handle,OFFSETFACTORY0,0);
-		write(handle,&wheelFactorY[0],sizeof(float));
+//		write(handle,&wheelFactorY[0],sizeof(float));
 
     	//lseek(handle,OFFSETFACTORX1,0);
-		write(handle,&wheelFactorX[1],sizeof(float));
+//		write(handle,&wheelFactorX[1],sizeof(float));
 
     	//lseek(handle,OFFSETFACTORY1,0);
-		write(handle,&wheelFactorY[1],sizeof(float));
+//		write(handle,&wheelFactorY[1],sizeof(float));
 
 		//lseek(handle,OFFSETMINIMUM,0);
-		write(handle,&minimumM,sizeof(int));
+//		write(handle,&minimumM,sizeof(int));
 
-	    strcpy(command[commandidx],command_ctrl->Text());
+//	    strcpy(command[commandidx],command_ctrl->Text());
     	//lseek(handle,OFFSETCMD0,0);
-		write(handle,command,255*9);
+//		write(handle,command,255*9);
 	    
-			close(handle);
-			if (restartInputServer_ctrl->Value()==B_CONTROL_ON) system("/system/servers/input_server -q");
+//			close(handle);
+	if ( restartInputServer_ctrl->Value() == B_CONTROL_ON )
+	{
+		system("/system/servers/input_server -q");
+	}
 }
 
 void MainWindow::MessageReceived(BMessage* message)
@@ -346,7 +324,7 @@ void MainWindow::MessageReceived(BMessage* message)
 		case CHANGEEVENT_MSG+6:
 		case CHANGEEVENT_MSG+7:
 		case CHANGEEVENT_MSG+8:
-			downCommandChanger( message->what-CHANGEEVENT_MSG );
+			setCommandControl( message->what-CHANGEEVENT_MSG );
 			break;
 		
 		case LEFT_MSG:
@@ -386,7 +364,7 @@ void MainWindow::MessageReceived(BMessage* message)
 			break;
 		
 		case MSG_OK:
-			okClick();
+			preserveSettings();
 			QuitRequested();
 			break;
 	

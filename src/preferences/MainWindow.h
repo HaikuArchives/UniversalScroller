@@ -7,6 +7,8 @@
 #define _H_MAIN_WINDOW
 
 #include <Window.h>
+#include <TextControl.h>
+#include <CheckBox.h>
 
 #include "Configuration.h"
 
@@ -19,9 +21,24 @@ class MainWindow : public BWindow
 
 	private:
 		Configuration configuration;
-				
+		
+		// Pointers to the relevant Controls
+		BTextControl *wheelFactorX_ctrl[2];
+		BTextControl *wheelFactorY_ctrl[2];
+		BCheckBox *useWheelFactors_ctrl;
+		BCheckBox *scrollWhenMouseDown_ctrl[8];
+		BCheckBox *swallowClick_ctrl;
+		BTextControl *command_ctrl;
+		BTextControl *minScroll_ctrl;
+		BCheckBox *restartInputServer_ctrl;	
+		
+		//private member functions
+		
 		void updateControlsFromConfiguration( void );
 
+        void setCommandControl( int );
+        
+        void preserveSettings( void );
 };
 
 #endif // _H_APPLICATION
