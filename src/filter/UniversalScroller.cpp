@@ -150,6 +150,12 @@ void simulate_keypress( const char *command, int32 modifiers, BList *outList )
 	
 }
 
+/*
+  physical -> represents something that appears to the a physical property instead of an augmented, virtual one.
+  virtual  -> represents something that is only augmented downstream.
+  _s       -> /s/tate. Indicates variables representing the internal state, being conserved between messages
+*/
+
 filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 {
 
@@ -184,15 +190,12 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
  filter_result filterResult = B_DISPATCH_MESSAGE;
 
  // holds the buttons value of msg
- int32 buttons;
+ int32 physicalButtonsDown;
  
- int32 internal_buttons=0;
- static int32 old_internal_buttons=0;
- static int32 old_buttons=0;
- int new_button_down;
- int new_clicks;
+ int32 virtualButtonsDown=0;
+ static int32 virtualButtonsDown_s=0;
+ static int32 physicalButtonsDown_s=0;
  
-// char str[255];
 // static int countadd=0;
  int32 buttonval[6]={B_PRIMARY_MOUSE_BUTTON,B_SECONDARY_MOUSE_BUTTON,B_TERTIARY_MOUSE_BUTTON,B_PRIMARY_MOUSE_BUTTON,B_SECONDARY_MOUSE_BUTTON,B_TERTIARY_MOUSE_BUTTON};
 
@@ -207,12 +210,12 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 		isControlKeyDown= IS_MODIFIER_SET( B_CONTROL_KEY );
 		isAltKeyDown    = IS_MODIFIER_SET( B_OPTION_KEY  );
 		
-		if ((isAltKeyDown) && (old_internal_buttons!=0))
+		if ((isAltKeyDown) && (virtualButtonsDown_s!=0))
 		{
-			old_internal_buttons=0;
-			old_buttons=0;
+			virtualButtonsDown_s=0;
+			physicalButtonsDown_s=0;
 			
-			SEND_MOUSE_UP( old_internal_buttons );
+			SEND_MOUSE_UP( virtualButtonsDown_s );
 		}
 		break;
 	
@@ -252,23 +255,25 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 		if (!isAltKeyDown)
 		{
 		  	message->FindPoint("where",&mouseButtonDownPosition);
-		  	message->FindInt32("buttons",&buttons);
+		  	message->FindInt32("buttons",&physicalButtonsDown);
 			message->FindInt32("modifiers",&modifiers);
-			filterResult=B_SKIP_MESSAGE;
 		
 			// cmdidx is the index of the interclicked command
-			int cmdidx = Configuration::getButtonDownIndex( old_buttons, buttons );
+			int cmdidx = Configuration::getButtonDownIndex( physicalButtonsDown_s, physicalButtonsDown );
 
 			if ( ( cmdidx != -1 ) && ( ! configuration.swallowclick[cmdidx] ) )
-			{				
+			{			
+				int new_button_down=0;	
+				int new_clicks=0;
+				
 				switch ( configuration.buttonDownCommand[cmdidx].kind )
 				{
 
 					case button:
-					    new_button_down=configuration.buttonDownCommand[cmdidx].mouseButtonIndex;
+ 					    new_button_down=configuration.buttonDownCommand[cmdidx].mouseButtonIndex;
 					    new_clicks=configuration.buttonDownCommand[cmdidx].mouseButtonClicks;
 					    
-						internal_buttons=old_internal_buttons|buttonval[new_button_down];
+						virtualButtonsDown=virtualButtonsDown_s|buttonval[new_button_down];
 
 						//Reset the accumulator, if last click is too far back
 						if ( system_time() - mouseButtonDownLastTime[new_button_down]
@@ -286,58 +291,48 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 							CREATE_MSG( B_MOUSE_DOWN );
 							msg->AddPoint("where",mouseButtonDownPosition);
 							msg->AddInt32("modifiers",modifiers);
-							msg->AddInt32("buttons",internal_buttons);
+							msg->AddInt32("buttons",virtualButtonsDown);
 							msg->AddInt32("clicks",clickAccumulator[new_button_down]);
 							ENLIST_MSG();
 						
 							if (new_clicks>0)
 							{
-								SEND_MOUSE_UP( old_internal_buttons );
+								SEND_MOUSE_UP( virtualButtonsDown_s );
 							}	
 						}
-						filterResult=B_DISPATCH_MESSAGE;
 					
-						old_internal_buttons=internal_buttons;
-
+						virtualButtonsDown_s=virtualButtonsDown;
 						break;
 											
 					case key:
 						simulate_keypress( configuration.buttonDownCommand[cmdidx].command, modifiers, outList );
-						 
-						filterResult=B_DISPATCH_MESSAGE;
-	
 						break;
 						
 					case cut:
 						CREATE_OLD_MSG( 'CCUT' );
 						ENLIST_MSG();	
-						filterResult=B_DISPATCH_MESSAGE;
-						
 						break;	
 
 					case copy:
 						CREATE_OLD_MSG( 'COPY' );
 						ENLIST_MSG();	
-						filterResult=B_DISPATCH_MESSAGE;
-				
 						break;
 
 					case paste:
 						CREATE_OLD_MSG( 'PSTE' );
 						ENLIST_MSG();	
-						filterResult=B_DISPATCH_MESSAGE;
-				
 						break;
 						
 					case executable:
-						TMsystem(configuration.buttonDownCommand[cmdidx].command);
-						
+						TMsystem( configuration.buttonDownCommand[cmdidx].command );
+						filterResult=B_SKIP_MESSAGE;						
 						break;		
 				}
-				 
-				
+				 				
+			} else {
+				filterResult=B_SKIP_MESSAGE;
 			}
-			old_buttons=buttons;
+			physicalButtonsDown_s = physicalButtonsDown;
 		}
   	break;	
 
@@ -348,24 +343,24 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 		if (!isAltKeyDown)
 		{
 		  	message->FindPoint("where",&mousePosition);
-		  	message->FindInt32("buttons",&buttons);
+		  	message->FindInt32("buttons",&physicalButtonsDown);
 			message->FindInt32("modifiers",&modifiers);
 	
 			filterResult=B_SKIP_MESSAGE;
 			
-			if (old_internal_buttons!=0)
+			if (virtualButtonsDown_s!=0)
 			{
-				if (buttons==0)
+				if (physicalButtonsDown==0)
 				{
 					SEND_MOUSE_UP( 0 );
 					filterResult=B_DISPATCH_MESSAGE;
-					old_internal_buttons=0;
+					virtualButtonsDown_s=0;
 				}
 				else
 				{
-					internal_buttons=old_internal_buttons;
+					virtualButtonsDown=virtualButtonsDown_s;
 					for (i=0;i<6;i++)
-						if ((old_internal_buttons&buttonval[i])==buttonval[i])
+						if ((virtualButtonsDown_s&buttonval[i])==buttonval[i])
 						{
 							if (i==0) strcpy(str,LEFT);
 							if (i==1) strcpy(str,MIDDLE);
@@ -375,50 +370,50 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 							if (i==5) strcpy(str,RIGHTDBL);
 							if
 							(!( 
-							((((buttons&B_PRIMARY_MOUSE_BUTTON)==B_PRIMARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.buttonDownCommand[0].command)==0)))
+							((((physicalButtonsDown&B_PRIMARY_MOUSE_BUTTON)==B_PRIMARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.buttonDownCommand[0].command)==0)))
 							||
-							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[1].command)==0)))
+							((((physicalButtonsDown&(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[1].command)==0)))
 							||
-							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[2].command)==0)))
+							((((physicalButtonsDown&(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[2].command)==0)))
 
 							||
-							((((buttons&B_SECONDARY_MOUSE_BUTTON)==B_SECONDARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.buttonDownCommand[3].command)==0)))
+							((((physicalButtonsDown&B_SECONDARY_MOUSE_BUTTON)==B_SECONDARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.buttonDownCommand[3].command)==0)))
 							||
-							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[4].command)==0)))
+							((((physicalButtonsDown&(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[4].command)==0)))
 							||
-							((((buttons&(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[5].command)==0)))
+							((((physicalButtonsDown&(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[5].command)==0)))
 	
 							||
-							((((buttons&B_TERTIARY_MOUSE_BUTTON)==B_TERTIARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.buttonDownCommand[6].command)==0)))
+							((((physicalButtonsDown&B_TERTIARY_MOUSE_BUTTON)==B_TERTIARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.buttonDownCommand[6].command)==0)))
 							||
-							((((buttons&(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[7].command)==0)))
+							((((physicalButtonsDown&(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[7].command)==0)))
 							||
-							((((buttons&(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[8].command)==0)))
+							((((physicalButtonsDown&(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[8].command)==0)))
 							))
 							{
-							internal_buttons=(internal_buttons-buttonval[i]);
+							virtualButtonsDown=(virtualButtonsDown-buttonval[i]);
 							}
 						
 						}
 					//for und if hier zuende
-					if (internal_buttons!=old_internal_buttons)
+					if (virtualButtonsDown!=virtualButtonsDown_s)
 					{
-						SEND_MOUSE_UP( old_internal_buttons );
+						SEND_MOUSE_UP( virtualButtonsDown_s );
 						filterResult=B_DISPATCH_MESSAGE;
-						old_internal_buttons=internal_buttons;
+						virtualButtonsDown_s=virtualButtonsDown;
 					}
 				}
 			}
-			old_buttons=buttons;
+			physicalButtonsDown_s=physicalButtonsDown;
 		}
   	break;	
 	
 	case B_MOUSE_MOVED:
 		if (!isAltKeyDown)
 		{
-		  	message->FindInt32("buttons",&buttons);
+		  	message->FindInt32("buttons",&physicalButtonsDown);
 			message->FindInt32("modifiers",&modifiers);
-			if (configuration.scrollmousedown[buttons])
+			if (configuration.scrollmousedown[physicalButtonsDown])
 			{	
 				message->FindPoint("where",&mousePosition);
 
@@ -427,10 +422,10 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 
 				if ((deltaX*deltaX>configuration.minScroll) || (deltaY*deltaY>configuration.minScroll))
 				{	
-					if (old_internal_buttons!=0)
+					if (virtualButtonsDown_s!=0)
 					{
 						SEND_MOUSE_UP( 0 );					
-						old_internal_buttons=0;
+						virtualButtonsDown_s=0;
 					
 					}
 					
