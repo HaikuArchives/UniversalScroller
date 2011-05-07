@@ -64,7 +64,7 @@ status_t UniversalScroller::InitCheck()
 
 #define SEND_MOUSE_UP( BUTTONS ) \
 	CREATE_MSG( B_MOUSE_UP ); \
-	msg->AddPoint("where",mousePosition); \
+	msg->AddPoint("where",physicalPosition_s); \
 	msg->AddInt32("modifiers",physicalModifiers); \
 	msg->AddInt32("buttons", BUTTONS ); \
 	ENLIST_MSG();	
@@ -84,6 +84,25 @@ status_t UniversalScroller::InitCheck()
  		toProcess=strstr(toProcess,"_")+1;  \
 	}
 	
+#define	REBUILD_VIRTUAL_BUTTONS_DOWN_FROM_PRESSED( MASK ) \
+	if ( ( physicalButtonsDown & MASK ) == MASK )                          \
+	{                                                                      \
+		cmdidx=Configuration::getButtonDownIndex( 0, MASK );               \
+		if ( configuration.buttonDownCommand[cmdidx].kind == button )      \
+		{                                                                  \
+			int commandButtonDownMask =                                    \
+				ButtonDownCommand::mouseButtonIndexToMask(                 \
+				  configuration.buttonDownCommand[cmdidx].mouseButtonIndex \
+				);                                                         \
+ 			if ( ( virtualButtonsDown_s & commandButtonDownMask ) ==       \
+ 				commandButtonDownMask )                                    \
+ 			{                                                              \
+ 				virtualButtonsDown |= commandButtonDownMask;               \
+ 			}                                                              \
+		}	                                                               \
+	}	                                                                   
+	
+
 void simulate_keypress( const char *command, int32 physicalModifiers, BList *outList )
 {
 	//format of commans is: "KEY_SHIFT_OPTION_CONTROL_key_raw-char_byte_#bytes_byte0[_byte1[_byte2]]_bytesZ"
@@ -158,46 +177,62 @@ void simulate_keypress( const char *command, int32 physicalModifiers, BList *out
 
 filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 {
-
- // Store the states of three used modifier keys.
- static bool isShiftKeyDown  =false;
- static bool isAltKeyDown    =false;
- static bool isControlKeyDown=false;
-
- // the last known mouse position
- static BPoint mousePosition;
+	/* =============================================================
+	Static variables for storing the keyboard/mouse state between messages
+    ============================================================= */
  
- // the position, where the last mouse button went down
- static BPoint mouseButtonDownPosition;
+	// States of the relevant modifier keys
+	static bool physicalIsShiftKeyDown_s  =false;
+	static bool physicalIsAltKeyDown_s    =false;
+	static bool physicalIsControlKeyDown_s=false;
 
- // msg holds the message that is going to be injected into outList
- BMessage *msg;
+	// the last known mouse position
+	static BPoint physicalPosition_s;
+ 
+ 	// the pressed mouse buttons, as received from upstream
+ 	static int32 physicalButtonsDown_s=0;
 
- // timestamp when the primary, secondare, tertiary mouse button was clicked last time
- static int64 mouseButtonDownLastTime[3]={0,0,0};
- 
- // the set modifier keys (Shift, Control, ...) that are currently pressed
- int32 physicalModifiers;
+	// the position, where the last mouse button went down
+ 	static BPoint physicalButtonDownPosition_s;
 
- // the accumulator for the number of clicks of primary, secondary and tertiary
- // mouse buttons, to allow double, triple, ... clicks 
- static int64 clickAccumulator[3]={0,0,0};
- 
- // the value returned by the filter.
- // This determines the treatment of ther incoming message.
- //   B_DISPATCH_MESSAGE -> incoming mesage is pased on
- //   B_SKIP_MESSAGE     -> incoming message is thrown away
- filter_result filterResult = B_DISPATCH_MESSAGE;
+ 	// the pressed mouse buttons, as sent to downstream
+ 	static int32 virtualButtonsDown_s=0;
 
- // holds the buttons value of msg
- int32 physicalButtonsDown;
+	// timestamp when the primary, secondare, tertiary physical mouse button was clicked last time
+	static int64 virtualButtonDownTime_s[3]={0,0,0};
  
- int32 virtualButtonsDown=0;
- static int32 virtualButtonsDown_s=0;
- static int32 physicalButtonsDown_s=0;
+	// the accumulator for the number of clicks of primary, secondary and tertiary
+	// mouse buttons, to allow double, triple, ... clicks 
+	static int64 virtualClickAccumulator_s[3]={0,0,0};
  
-// static int countadd=0;
- int32 buttonval[6]={B_PRIMARY_MOUSE_BUTTON,B_SECONDARY_MOUSE_BUTTON,B_TERTIARY_MOUSE_BUTTON,B_PRIMARY_MOUSE_BUTTON,B_SECONDARY_MOUSE_BUTTON,B_TERTIARY_MOUSE_BUTTON};
+	/* =============================================================
+	Variables used for extracting information from the current message
+	============================================================= */
+ 
+	// the pressed modifier keys (Shift, Control, ...) that are currently pressed
+	int32 physicalModifiers;
+
+	// holds the buttons value of msg
+	int32 physicalButtonsDown;
+ 
+	int32 virtualButtonsDown=0;
+
+	/* =============================================================
+	Variables required for the filter mechanism
+	============================================================= */
+	
+	// msg holds the message that is going to be injected into outList
+	BMessage *msg;
+
+	// the value returned by the filter.
+	// This determines the treatment of ther incoming message.
+	//   B_DISPATCH_MESSAGE -> incoming mesage is pased on
+	//   B_SKIP_MESSAGE     -> incoming message is thrown away
+	filter_result filterResult = B_DISPATCH_MESSAGE;
+
+  
+ int32 buttonval[6]={B_PRIMARY_MOUSE_BUTTON,B_SECONDARY_MOUSE_BUTTON,B_TERTIARY_MOUSE_BUTTON,
+                     B_PRIMARY_MOUSE_BUTTON,B_SECONDARY_MOUSE_BUTTON,B_TERTIARY_MOUSE_BUTTON};
 
  //so now for the switching
  switch (message->what)
@@ -206,11 +241,11 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 		
 		message->FindInt32("modifiers",&physicalModifiers);
 		
-		isShiftKeyDown  = IS_MODIFIER_SET( B_SHIFT_KEY   );
-		isControlKeyDown= IS_MODIFIER_SET( B_CONTROL_KEY );
-		isAltKeyDown    = IS_MODIFIER_SET( B_OPTION_KEY  );
+		physicalIsShiftKeyDown_s  = IS_MODIFIER_SET( B_SHIFT_KEY   );
+		physicalIsControlKeyDown_s= IS_MODIFIER_SET( B_CONTROL_KEY );
+		physicalIsAltKeyDown_s    = IS_MODIFIER_SET( B_OPTION_KEY  );
 		
-		if ((isAltKeyDown) && (virtualButtonsDown_s!=0))
+		if ((physicalIsAltKeyDown_s) && (virtualButtonsDown_s!=0))
 		{
 			virtualButtonsDown_s=0;
 			physicalButtonsDown_s=0;
@@ -221,7 +256,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 	
 	case B_MOUSE_WHEEL_CHANGED:
 		float hfloat;
-	  	if ((!isAltKeyDown) && ((isShiftKeyDown) || (configuration.factorsforwheel)))
+	  	if ((!physicalIsAltKeyDown_s) && ((physicalIsShiftKeyDown_s) || (configuration.factorsforwheel)))
 	  	{                               
 			float deltaX, deltaY;
  	  		message->FindFloat("be:wheel_delta_x",&deltaX);
@@ -230,7 +265,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 			// If the shift key is down, x and y axis get swapped.
 			// Thereby mice with a single scroll wheel can be used to scroll
 			// in both directions
-			if (isShiftKeyDown)
+			if (physicalIsShiftKeyDown_s)
 			{
 				float tmpFloat;
 				tmpFloat = deltaX;
@@ -240,8 +275,8 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 						
 		  	if (configuration.factorsforwheel) 
 		  	{
-		  		deltaX *= configuration.factorX[ isControlKeyDown ? 1 : 0 ];
-		 		deltaY *= configuration.factorY[ isControlKeyDown ? 1 : 0 ];
+		  		deltaX *= configuration.factorX[ physicalIsControlKeyDown_s ? 1 : 0 ];
+		 		deltaY *= configuration.factorY[ physicalIsControlKeyDown_s ? 1 : 0 ];
 		 	}
 
 			CREATE_MSG( B_MOUSE_WHEEL_CHANGED );
@@ -252,9 +287,9 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 		break;
 		
 	case B_MOUSE_DOWN:
-		if (!isAltKeyDown)
+		if (!physicalIsAltKeyDown_s)
 		{
-		  	message->FindPoint("where",&mouseButtonDownPosition);
+		  	message->FindPoint("where",&physicalButtonDownPosition_s);
 		  	message->FindInt32("buttons",&physicalButtonsDown);
 			message->FindInt32("modifiers",&physicalModifiers);
 		
@@ -273,26 +308,26 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
  					    new_button_down=configuration.buttonDownCommand[cmdidx].mouseButtonIndex;
 					    new_clicks=configuration.buttonDownCommand[cmdidx].mouseButtonClicks;
 					    
-						virtualButtonsDown=virtualButtonsDown_s|buttonval[new_button_down];
+						virtualButtonsDown = virtualButtonsDown_s | ( ButtonDownCommand::mouseButtonIndexToMask( new_button_down ));
 
 						//Reset the accumulator, if last click is too far back
-						if ( system_time() - mouseButtonDownLastTime[new_button_down]
+						if ( system_time() - virtualButtonDownTime_s[new_button_down]
 						     > configuration.doubleClickSpeed[new_button_down] )
 						{
-							clickAccumulator[new_button_down]=0;
+							virtualClickAccumulator_s[new_button_down]=0;
 						}
 							
-						mouseButtonDownLastTime[new_button_down]=system_time();
+						virtualButtonDownTime_s[new_button_down]=system_time();
 						
 						while (new_clicks>0)
 						{
-							clickAccumulator[new_button_down]++;
+							virtualClickAccumulator_s[new_button_down]++;
 							new_clicks--;
 							CREATE_MSG( B_MOUSE_DOWN );
-							msg->AddPoint("where",mouseButtonDownPosition);
+							msg->AddPoint("where",physicalButtonDownPosition_s);
 							msg->AddInt32("modifiers",physicalModifiers);
 							msg->AddInt32("buttons",virtualButtonsDown);
-							msg->AddInt32("clicks",clickAccumulator[new_button_down]);
+							msg->AddInt32("clicks",virtualClickAccumulator_s[new_button_down]);
 							ENLIST_MSG();
 						
 							if (new_clicks>0)
@@ -340,9 +375,9 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 		int i;
 		char str[31];
 	
-		if (!isAltKeyDown)
+		if (!physicalIsAltKeyDown_s)
 		{
-		  	message->FindPoint("where",&mousePosition);
+		  	message->FindPoint("where",&physicalPosition_s);
 		  	message->FindInt32("buttons",&physicalButtonsDown);
 			message->FindInt32("modifiers",&physicalModifiers);
 	
@@ -358,44 +393,14 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 				}
 				else
 				{
-					virtualButtonsDown=virtualButtonsDown_s;
-					for (i=0;i<6;i++)
-						if ((virtualButtonsDown_s&buttonval[i])==buttonval[i])
-						{
-							if (i==0) strcpy(str,LEFT);
-							if (i==1) strcpy(str,MIDDLE);
-							if (i==2) strcpy(str,RIGHT);
-							if (i==3) strcpy(str,LEFTDBL);
-							if (i==4) strcpy(str,MIDDLEDBL);
-							if (i==5) strcpy(str,RIGHTDBL);
-							if
-							(!( 
-							((((physicalButtonsDown&B_PRIMARY_MOUSE_BUTTON)==B_PRIMARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.buttonDownCommand[0].command)==0)))
-							||
-							((((physicalButtonsDown&(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[1].command)==0)))
-							||
-							((((physicalButtonsDown&(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[2].command)==0)))
+					int cmdidx;
+					virtualButtonsDown=0;
+					
 
-							||
-							((((physicalButtonsDown&B_SECONDARY_MOUSE_BUTTON)==B_SECONDARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.buttonDownCommand[3].command)==0)))
-							||
-							((((physicalButtonsDown&(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_SECONDARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[4].command)==0)))
-							||
-							((((physicalButtonsDown&(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[5].command)==0)))
-	
-							||
-							((((physicalButtonsDown&B_TERTIARY_MOUSE_BUTTON)==B_TERTIARY_MOUSE_BUTTON) && (strcasecmp(str,configuration.buttonDownCommand[6].command)==0)))
-							||
-							((((physicalButtonsDown&(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_PRIMARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[7].command)==0)))
-							||
-							((((physicalButtonsDown&(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON))==(B_SECONDARY_MOUSE_BUTTON|B_TERTIARY_MOUSE_BUTTON)) && (strcasecmp(str,configuration.buttonDownCommand[8].command)==0)))
-							))
-							{
-							virtualButtonsDown=(virtualButtonsDown-buttonval[i]);
-							}
-						
-						}
-					//for und if hier zuende
+					REBUILD_VIRTUAL_BUTTONS_DOWN_FROM_PRESSED( B_PRIMARY_MOUSE_BUTTON   );	
+					REBUILD_VIRTUAL_BUTTONS_DOWN_FROM_PRESSED( B_SECONDARY_MOUSE_BUTTON );	
+					REBUILD_VIRTUAL_BUTTONS_DOWN_FROM_PRESSED( B_TERTIARY_MOUSE_BUTTON  );	
+					
 					if (virtualButtonsDown!=virtualButtonsDown_s)
 					{
 						SEND_MOUSE_UP( virtualButtonsDown_s );
@@ -409,16 +414,16 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
   	break;	
 	
 	case B_MOUSE_MOVED:
-		if (!isAltKeyDown)
+		if (!physicalIsAltKeyDown_s)
 		{
 		  	message->FindInt32("buttons",&physicalButtonsDown);
 			message->FindInt32("modifiers",&physicalModifiers);
 			if (configuration.scrollmousedown[physicalButtonsDown])
 			{	
-				message->FindPoint("where",&mousePosition);
+				message->FindPoint("where",&physicalPosition_s);
 
- 				float deltaX = configuration.factorX[isControlKeyDown?1:0] * (mousePosition.x-mouseButtonDownPosition.x);
-				float deltaY = configuration.factorY[isControlKeyDown?1:0] * (mousePosition.y-mouseButtonDownPosition.y);
+ 				float deltaX = configuration.factorX[physicalIsControlKeyDown_s?1:0] * (physicalPosition_s.x-physicalButtonDownPosition_s.x);
+				float deltaY = configuration.factorY[physicalIsControlKeyDown_s?1:0] * (physicalPosition_s.y-physicalButtonDownPosition_s.y);
 
 				if ((deltaX*deltaX>configuration.minScroll) || (deltaY*deltaY>configuration.minScroll))
 				{	
@@ -430,7 +435,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 					}
 					
 					CREATE_MSG( B_MOUSE_WHEEL_CHANGED );
-				  	if (isShiftKeyDown) {hfloat=deltaX;deltaX=deltaY;deltaY=hfloat;}
+				  	if (physicalIsShiftKeyDown_s) {hfloat=deltaX;deltaX=deltaY;deltaY=hfloat;}
 		  			msg->AddFloat("be:wheel_delta_x",deltaX); //so swap x and y here
 		  			msg->AddFloat("be:wheel_delta_y",deltaY);
 			  		ENLIST_MSG();

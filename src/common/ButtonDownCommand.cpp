@@ -3,6 +3,15 @@
  * All rights reserved. Distributed under the terms of the GPLv2 license.
  */
 
+#include <Message.h>
+#include <Message.h>
+#include <View.h>
+#include <List.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,13 +51,13 @@ ButtonDownCommand::ButtonDownCommand(const char *str)
 	mouseButtonClicks = 0;
 	command=str;
 	
-	check_for_click( str, LEFT  , button, 0, 1 );
-	check_for_click( str, RIGHT , button, 1, 1 );
-	check_for_click( str, MIDDLE, button, 2, 1 );
+	check_for_click( str, LEFT  , button, CMD_MOUSE_BUTTON_INDEX_PRIMARY  , 1 );
+	check_for_click( str, RIGHT , button, CMD_MOUSE_BUTTON_INDEX_SECONDARY, 1 );
+	check_for_click( str, MIDDLE, button, CMD_MOUSE_BUTTON_INDEX_TERTIARY , 1 );
 
-	check_for_click( str, LEFTDBL  , button, 0, 2 );
-	check_for_click( str, RIGHTDBL , button, 1, 2 );
-	check_for_click( str, MIDDLEDBL, button, 2, 2 );
+	check_for_click( str, LEFTDBL  , button, CMD_MOUSE_BUTTON_INDEX_PRIMARY  , 2 );
+	check_for_click( str, RIGHTDBL , button, CMD_MOUSE_BUTTON_INDEX_SECONDARY, 2 );
+	check_for_click( str, MIDDLEDBL, button, CMD_MOUSE_BUTTON_INDEX_TERTIARY , 2 );
 	
 	check_for_simple_command( str, CUT  , cut   );
 	check_for_simple_command( str, COPY , copy  );
@@ -72,4 +81,25 @@ ButtonDownCommand::ButtonDownCommand( )
 	mouseButtonIndex = CMD_MOUSE_BUTTON_INDEX_UNKNOWN;
 	mouseButtonClicks = 0;
 	command=NULL;
+}
+
+int32 ButtonDownCommand::mouseButtonIndexToMask( int index )
+{
+	int32 mask = 0;
+	switch ( index )
+	{
+		case CMD_MOUSE_BUTTON_INDEX_PRIMARY:
+			mask = B_PRIMARY_MOUSE_BUTTON;
+			break;
+			
+		case CMD_MOUSE_BUTTON_INDEX_SECONDARY:
+			mask = B_SECONDARY_MOUSE_BUTTON;
+			break;
+		
+		case CMD_MOUSE_BUTTON_INDEX_TERTIARY:
+			mask = B_TERTIARY_MOUSE_BUTTON;
+			break;
+	
+	}
+	return mask;
 }

@@ -9,7 +9,10 @@
 
 enum ButtonDownCommandKind { unknown, button, key, cut, copy, paste, executable };
 
-#define CMD_MOUSE_BUTTON_INDEX_UNKNOWN -1
+#define CMD_MOUSE_BUTTON_INDEX_UNKNOWN  -1
+#define CMD_MOUSE_BUTTON_INDEX_PRIMARY   0
+#define CMD_MOUSE_BUTTON_INDEX_SECONDARY 1
+#define CMD_MOUSE_BUTTON_INDEX_TERTIARY  2
 
 
 class ButtonDownCommand {
@@ -21,6 +24,8 @@ public:
 	int mouseButtonIndex;
 	int mouseButtonClicks;
 	const char * command;
+	
+	static int32 mouseButtonIndexToMask( int );
 private:
 	void check_for_click( const char *, const char *, ButtonDownCommandKind, int, int );
     void check_for_simple_command( const char *, const char *, ButtonDownCommandKind );
