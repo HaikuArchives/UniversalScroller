@@ -32,7 +32,7 @@ Or as an alternative do everything manually:
 3. How to use it
 =========================
 After installing {{NAME}}, open a file (which doesn't fit entirely on your screen) in StyledEdit.
-Press and hold down the tertiary mouse button (For typical mice, the middle mouse button is the tertiary mouse button).
+Press and hold down the primary and secondary mouse button (For typical mice, this resolves to the left and right mouse buttons).
 Now move your mouse.
 Voila. You scroll by just moving your mouse. That's fast and effective. Even better than just the slow scrolling wheel.
 Thats too slow? Just press your Control key and you scroll ten times as fast.

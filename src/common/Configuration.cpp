@@ -15,6 +15,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <View.h>
+
 
 Configuration::Configuration()
 {
@@ -66,13 +68,20 @@ void Configuration::loadFallbackConfiguration( void )
 	
 	for ( i=0; i<8; i++ )
 	{
-		scrollWhenMouseDown[i] = (i>3);
+		// The following condition is true, when at least two mouse buttons
+		// are pressed
+		scrollWhenMouseDown[i] = ( (i==3) || (i>4) );
 	}
 
+	// First we default to swallowing all clicks ...
 	for ( i=0; i<9; i++ )
 	{
-		swallowClick[i] = (i>3);
+		swallowClick[i] = true;
 	}
+	// ... then we reenable simple clicks
+	swallowClick[getButtonDownIndex( 0, B_PRIMARY_MOUSE_BUTTON   )] = false;
+	swallowClick[getButtonDownIndex( 0, B_SECONDARY_MOUSE_BUTTON )] = false;
+	swallowClick[getButtonDownIndex( 0, B_TERTIARY_MOUSE_BUTTON  )] = false;
 
 }
 
