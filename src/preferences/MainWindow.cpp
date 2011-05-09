@@ -208,9 +208,17 @@ void MainWindow::setCommandControl( int commandidx )
 	command_ctrl->SetText(configuration.buttonDownCommand[commandidx].command);
 }
 
+void MainWindow::preserveCommandControl( int commandidx )
+{
+	configuration.swallowClick[commandidx]=( swallowClick_ctrl->Value() == B_CONTROL_ON );
+
+	ButtonDownCommand buttonDownCommand( command_ctrl->Text() ); 
+	configuration.buttonDownCommand[commandidx]=buttonDownCommand;
+}
+
 void MainWindow::updateControlsFromConfiguration( void )
 {
-	char str[ MAX_CONF_STR+1 ];
+	char str[ MAX_CONF_STR ];
 	int i;
 	
 	// Scrolling --------------------------------------------
@@ -312,7 +320,7 @@ void MainWindow::preserveSettings(void)
 
 void MainWindow::MessageReceived(BMessage* message)
 {
-	
+	static int previousCommandIndex=0;
 	switch(message->what)
 	{
 		case CHANGEEVENT_MSG+0:
@@ -324,7 +332,8 @@ void MainWindow::MessageReceived(BMessage* message)
 		case CHANGEEVENT_MSG+6:
 		case CHANGEEVENT_MSG+7:
 		case CHANGEEVENT_MSG+8:
-			setCommandControl( message->what-CHANGEEVENT_MSG );
+			preserveCommandControl( previousCommandIndex );
+			setCommandControl( previousCommandIndex = message->what-CHANGEEVENT_MSG );
 			break;
 		
 		case LEFT_MSG:

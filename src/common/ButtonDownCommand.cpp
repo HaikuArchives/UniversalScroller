@@ -19,6 +19,14 @@
 #include "command_strings.h"
 #include "ButtonDownCommand.h"
 
+static char * cloneCommand( const char * str )
+{
+	char * clone=(char *) malloc( MAX_COMMAND_LENGTH );
+	strncpy( clone, str, MAX_COMMAND_LENGTH );
+ 	clone[ MAX_COMMAND_LENGTH - 1 ]=0;
+	return clone;
+}
+
 void ButtonDownCommand::check_for_click( const char *str, const char *cmd, ButtonDownCommandKind cmd_kind, int index, int count )
 {
 	if (strncasecmp( str, cmd, strlen( cmd ) ) == 0 )
@@ -49,8 +57,9 @@ ButtonDownCommand::ButtonDownCommand(const char *str)
 	kind = unknown;
 	mouseButtonIndex = CMD_MOUSE_BUTTON_INDEX_UNKNOWN;
 	mouseButtonClicks = 0;
-	command=str;
 	
+	command = cloneCommand( str );
+
 	check_for_click( str, LEFT  , button, CMD_MOUSE_BUTTON_INDEX_PRIMARY  , 1 );
 	check_for_click( str, RIGHT , button, CMD_MOUSE_BUTTON_INDEX_SECONDARY, 1 );
 	check_for_click( str, MIDDLE, button, CMD_MOUSE_BUTTON_INDEX_TERTIARY , 1 );
@@ -81,6 +90,35 @@ ButtonDownCommand::ButtonDownCommand( )
 	mouseButtonIndex = CMD_MOUSE_BUTTON_INDEX_UNKNOWN;
 	mouseButtonClicks = 0;
 	command=NULL;
+}
+
+ButtonDownCommand::ButtonDownCommand(const ButtonDownCommand &cmd )
+{
+	kind = cmd.kind;
+	mouseButtonIndex = cmd.mouseButtonIndex;
+	mouseButtonClicks = cmd.mouseButtonClicks;
+	command = cloneCommand( cmd.command );
+}
+
+ButtonDownCommand::~ButtonDownCommand( )
+{
+	free( (char *) command );
+}
+
+ButtonDownCommand & ButtonDownCommand::operator=(const ButtonDownCommand &rhs )
+{
+	if ( this != &rhs )
+	{
+		kind = rhs.kind;
+	
+		mouseButtonIndex = rhs.mouseButtonIndex;
+
+		mouseButtonClicks = rhs.mouseButtonClicks;
+
+		free( (char *) command );
+		command = cloneCommand( rhs.command );
+	}
+	return *this;
 }
 
 int32 ButtonDownCommand::mouseButtonIndexToMask( int index )

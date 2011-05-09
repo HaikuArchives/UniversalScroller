@@ -20,9 +20,16 @@ enum ButtonDownCommandKind { unknown, button, key, cut, copy, paste, executable 
 
 class ButtonDownCommand {
 public:
-	ButtonDownCommand();	
+	ButtonDownCommand();
+	ButtonDownCommand( const ButtonDownCommand & );
+	
+	// The given string is copied, hence the caller is resposible for freeing it	
 	ButtonDownCommand( const char * );	
 
+	~ButtonDownCommand();
+
+	ButtonDownCommand & operator=( const ButtonDownCommand & );
+	
 	ButtonDownCommandKind kind;
 	int mouseButtonIndex;
 	int mouseButtonClicks;

@@ -37,6 +37,7 @@ class MainWindow : public BWindow
 		void updateControlsFromConfiguration( void );
 
         void setCommandControl( int );
+        void preserveCommandControl( int );
         
         void preserveSettings( void );
 };
