@@ -23,9 +23,18 @@ Configuration::Configuration()
 
 static const char *getConfigurationFileName( void )
 {
+	const char *env_line=getenv("HOME");
 	char *ret;
-	ret=(char *) malloc( 30 );
-	strncpy( ret, "/boot/home/.universalscroller", 30 );
+	if ( env_line )
+	{
+		int len = strlen( env_line ) + 1 + 19;
+		ret=(char *) malloc( len );
+		snprintf( ret, len, "%s/.universalscroller", env_line );
+		ret[len]=0;
+	} else {
+		ret=(char *) malloc( 30 );
+		strncpy( ret, "/boot/home/.universalscroller", 30 );
+	}
 	return (const char *) ret;	
 }
 
@@ -79,7 +88,7 @@ void Configuration::load( void )
 	loadFallbackConfiguration();
 	const char *filename = getConfigurationFileName();
 	int handle=open( filename, O_RDONLY );
-
+	
 	if (handle >= 0)
 	{
 		int8 i8;
@@ -131,7 +140,7 @@ void Configuration::load( void )
 	free( (char *) filename );
 }
 
-int Configuration::store( void )
+void Configuration::save( void )
 {
 	const char *filename = getConfigurationFileName();
 	int handle=open( filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR|S_IWUSR );

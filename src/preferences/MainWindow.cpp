@@ -272,7 +272,7 @@ void MainWindow::preserveSettings(void)
 	float tmpFloat;
 	if ( sscanf(minScroll_ctrl->Text(),"%f",&tmpFloat) == 1 )
 	{
-		configuration.minScroll = tmpFloat * tmpFloat;
+		configuration.minScroll = (int) (tmpFloat * tmpFloat);
 	}
 
 	// Scroll Speed -----------------------------------------
@@ -306,7 +306,7 @@ void MainWindow::preserveSettings(void)
    
     // Actual storing of configuration -----------------------
 
-	configuration.store();
+	configuration.save();
 
     // Restarting input server if requested ------------------
 	if ( restartInputServer_ctrl->Value() == B_CONTROL_ON )

@@ -18,7 +18,7 @@ public:
 
 	void Configuration::loadFallbackConfiguration( void );
 	void load( void );
-    int store( void );
+    void save( void );
 
 	int32 minScroll;	
 	int32 doubleClickSpeed[3];
