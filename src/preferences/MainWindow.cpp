@@ -260,8 +260,55 @@ bool MainWindow::QuitRequested()
 
 void MainWindow::preserveSettings(void)
 {
+	int i;
+
+	// Scrolling --------------------------------------------
+	
+	for (i=1;i<8;i++)
+    {
+		configuration.scrollWhenMouseDown[i] = ( scrollWhenMouseDown_ctrl[i]->Value() == B_CONTROL_ON );
+	}
+
+	float tmpFloat;
+	if ( sscanf(minScroll_ctrl->Text(),"%f",&tmpFloat) == 1 )
+	{
+		configuration.minScroll = tmpFloat * tmpFloat;
+	}
+
+	// Scroll Speed -----------------------------------------
+
+	configuration.useWheelFactors = ( useWheelFactors_ctrl->Value() == B_CONTROL_ON );
+
+	if ( sscanf(wheelFactorX_ctrl[0]->Text(),"%f",&tmpFloat) == 1 )
+	{
+		configuration.wheelFactorX[0] = tmpFloat;
+	}
+
+	if ( sscanf(wheelFactorY_ctrl[0]->Text(),"%f",&tmpFloat) == 1 )
+	{
+		configuration.wheelFactorY[0] = tmpFloat;
+	}
+
+	if ( sscanf(wheelFactorX_ctrl[1]->Text(),"%f",&tmpFloat) == 1 )
+	{
+		configuration.wheelFactorX[1] = tmpFloat;
+	}
+
+	if ( sscanf(wheelFactorY_ctrl[1]->Text(),"%f",&tmpFloat) == 1 )
+	{
+		configuration.wheelFactorY[1] = tmpFloat;
+	}
+
+    // Clicks ------------------------------------------------
+
+	// Clicks to configuration is managed via MessageReceived Function
+	
+   
+    // Actual storing of configuration -----------------------
+
 	configuration.store();
 
+    // Restarting input server if requested ------------------
 	if ( restartInputServer_ctrl->Value() == B_CONTROL_ON )
 	{
 		system("/system/servers/input_server -q");

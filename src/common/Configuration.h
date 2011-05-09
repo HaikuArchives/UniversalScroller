@@ -16,11 +16,12 @@ public:
 	// create and reload the configuration
 	Configuration();	
 
+	void Configuration::loadFallbackConfiguration( void );
 	void load( void );
-    void store( void );
+    int store( void );
 
-	int minScroll;	
-	int doubleClickSpeed[3];
+	int32 minScroll;	
+	int32 doubleClickSpeed[3];
 	ButtonDownCommand buttonDownCommand[9];
 	bool swallowClick[9];
 		

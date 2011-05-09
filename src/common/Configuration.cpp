@@ -9,25 +9,39 @@
 #include "Configuration.h"
 
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 
 Configuration::Configuration()
 {
 	load();
 }
 
-void Configuration::load( void )
+static const char *getConfigurationFileName( void )
+{
+	char *ret;
+	ret=(char *) malloc( 30 );
+	strncpy( ret, "/boot/home/.universalscroller", 30 );
+	return (const char *) ret;	
+}
+
+void Configuration::loadFallbackConfiguration( void )
 {
 	int i;
 	
-	this->minScroll=0;
-	this->doubleClickSpeed[0]=250000;
-	this->doubleClickSpeed[1]=250000;
-	this->doubleClickSpeed[2]=250000;
+	minScroll=0;
+	doubleClickSpeed[0]=250000;
+	doubleClickSpeed[1]=250000;
+	doubleClickSpeed[2]=250000;
 
-	this->wheelFactorX[0]= 1.0;
-	this->wheelFactorY[0]= 1.0;
-	this->wheelFactorX[1]=10.0;
-	this->wheelFactorY[1]=10.0;
+	wheelFactorX[0]= 1.0;
+	wheelFactorY[0]= 1.0;
+	wheelFactorX[1]=10.0;
+	wheelFactorY[1]=10.0;
 	useWheelFactors=true;
 
 	i=0;
@@ -53,8 +67,116 @@ void Configuration::load( void )
 
 }
 
-void Configuration::store( void )
+#define READ( POS, LEN ) \
+	if ( cont ) \
+	{ \
+		read_result = read( handle, POS, LEN ); \
+		cont = ( read_result == LEN ); \
+	}
+
+void Configuration::load( void )
 {
+	loadFallbackConfiguration();
+	const char *filename = getConfigurationFileName();
+	int handle=open( filename, O_RDONLY );
+
+	if (handle >= 0)
+	{
+		int8 i8;
+		int32 i32;
+		int i;
+		int read_result;
+		bool cont = true;
+		
+		READ( &i32, 4 );
+        if (cont)
+        {
+        	cont = 1;
+        }
+        				
+		READ( &minScroll    , 1*4 );
+		for (i=0;i<2;i++)
+		{
+			READ( &(doubleClickSpeed[i]), 4 );
+		}
+		for (i=0;i<9;i++)
+		{
+			char command[ MAX_COMMAND_LENGTH ];
+
+			READ( command, MAX_COMMAND_LENGTH );
+
+			buttonDownCommand[i] = ButtonDownCommand( command );
+		}
+		for (i=0;i<9;i++)
+		{
+			READ( &i8, 1 )
+			swallowClick[i] = ( i8 != 0 );
+		}
+		
+		READ( &i8, 1 )
+		useWheelFactors = ( i8 != 0 );
+		
+		READ( &(wheelFactorX[0]), 4 );
+		READ( &(wheelFactorY[0]), 4 );
+		READ( &(wheelFactorX[1]), 4 );
+		READ( &(wheelFactorY[1]), 4 );
+		for (i=0;i<8;i++)
+		{
+			READ( &i8, 1 )
+			scrollWhenMouseDown[i] = ( i8 != 0 );
+		}
+
+		close( handle );	
+	}
+	free( (char *) filename );
+}
+
+int Configuration::store( void )
+{
+	const char *filename = getConfigurationFileName();
+	int handle=open( filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR|S_IWUSR );
+
+	if (handle >= 0)
+	{
+		int8 i8;
+		int32 i32;
+		int i;
+		
+		i32=1; // Configuration Version
+		write( handle, &i32, 4 );
+		
+		write( handle, &minScroll    , 4 );
+		for (i=0;i<2;i++)
+		{
+			write( handle, &(doubleClickSpeed[i]) , 4 );
+		}
+		for (i=0;i<9;i++)
+		{
+			write( handle, buttonDownCommand[i].command, MAX_COMMAND_LENGTH );
+		}
+		for (i=0;i<9;i++)
+		{
+			i8=( swallowClick[i] ? 1 : 0 );
+			write( handle, &i8, 1 );
+		}
+
+		i8=( useWheelFactors ? 1 : 0 );
+		write( handle, &i8, 1 );
+
+		write( handle, &(wheelFactorX[0]), 4 );
+		write( handle, &(wheelFactorY[0]), 4 );
+		write( handle, &(wheelFactorX[1]), 4 );
+		write( handle, &(wheelFactorY[1]), 4 );
+
+		for (i=0;i<8;i++)
+		{
+			i8=( scrollWhenMouseDown[i] ? 1 : 0 );
+			write( handle, &i8, 1 );
+		}
+		
+		close( handle );	
+	}
+	free( (char *) filename );
 }
 
 int Configuration::getButtonDownIndex( int32 previousButtons, int32 currentButtons )
