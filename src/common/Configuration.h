@@ -13,7 +13,11 @@
 
 class Configuration {
 public:
+	// create and reload the configuration
 	Configuration();	
+
+	void load( void );
+    void store( void );
 
 	int minScroll;	
 	int doubleClickSpeed[3];

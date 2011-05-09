@@ -12,6 +12,11 @@
 
 Configuration::Configuration()
 {
+	load();
+}
+
+void Configuration::load( void )
+{
 	int i;
 	
 	this->minScroll=0;
@@ -46,6 +51,10 @@ Configuration::Configuration()
 		swallowClick[i] = (i>3);
 	}
 
+}
+
+void Configuration::store( void )
+{
 }
 
 int Configuration::getButtonDownIndex( int32 previousButtons, int32 currentButtons )

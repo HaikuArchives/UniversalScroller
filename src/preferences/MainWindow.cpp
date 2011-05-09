@@ -260,58 +260,8 @@ bool MainWindow::QuitRequested()
 
 void MainWindow::preserveSettings(void)
 {
-		return;	
-			
-//			int handle=open("/boot/home/config/add-ons/input_server/filters/UniversalScroller",O_RDWR);
+	configuration.store();
 
-
-//		swallowClick[commandidx]=(swallowClick_ctrl->Value()==B_CONTROL_ON);
-
-
-    	//lseek(handle,OFFSETFACTORSFORWHEEL,0);
-//		boolval=(useWheelFactors_ctrl->Value()==B_CONTROL_ON);
-//		write(handle,&boolval,sizeof(bool));
-
-//		for (i=1;i<8;i++)
-//	    {
-//	    	//lseek(handle,OFFSETSCROLLMOUSEDOWN+i,0);
-//			boolval=(scrollWhenMouseDown_ctrl[i]->Value()==B_CONTROL_ON);
-//			write(handle,&boolval,sizeof(bool));
-//		}
-//		for (i=1;i<8;i++)
-//	    {
-//	    	//lseek(handle,OFFSETswallowClick+i,0);
-//			write(handle,&swallowClick[i],sizeof(bool));
-//		}
-		
-//		sscanf(wheelFactorX_ctrl[0]->Text(),"%f",&wheelFactorX[0]);
-//		sscanf(wheelFactorY_ctrl[0]->Text(),"%f",&wheelFactorY[0]);
-//		sscanf(wheelFactorX_ctrl[1]->Text(),"%f",&wheelFactorX[1]);
-//		sscanf(wheelFactorY_ctrl[1]->Text(),"%f",&wheelFactorY[1]);
-//		sscanf(minScroll_ctrl->Text(),"%u",&minimumM);
-//		minimumM=minimumM*minimumM;
-
-
-    	//lseek(handle,OFFSETFACTORX0,0);
-//		write(handle,&wheelFactorX[0],sizeof(float));
-
-    	//lseek(handle,OFFSETFACTORY0,0);
-//		write(handle,&wheelFactorY[0],sizeof(float));
-
-    	//lseek(handle,OFFSETFACTORX1,0);
-//		write(handle,&wheelFactorX[1],sizeof(float));
-
-    	//lseek(handle,OFFSETFACTORY1,0);
-//		write(handle,&wheelFactorY[1],sizeof(float));
-
-		//lseek(handle,OFFSETMINIMUM,0);
-//		write(handle,&minimumM,sizeof(int));
-
-//	    strcpy(command[commandidx],command_ctrl->Text());
-    	//lseek(handle,OFFSETCMD0,0);
-//		write(handle,command,255*9);
-	    
-//			close(handle);
 	if ( restartInputServer_ctrl->Value() == B_CONTROL_ON )
 	{
 		system("/system/servers/input_server -q");
@@ -373,6 +323,7 @@ void MainWindow::MessageReceived(BMessage* message)
 			break;
 		
 		case MSG_OK:
+			preserveCommandControl( previousCommandIndex );
 			preserveSettings();
 			QuitRequested();
 			break;
