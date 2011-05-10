@@ -12,8 +12,30 @@ endif
 #------------------------------------
 
 SUBDIRS=src/filter src/preferences
+
 ENV_VERSION:=$(VERSION)
-VERSION=$(shell if test -z $$VERSION ; then if test -e .git ; then echo git-$(shell git branch | grep '*' | sed -e 's/^[[:space:]]*\*[[:space:]]*//' -e 's/[^a-zA-Z]/_/g')-$(shell date +'%Y%m%d') ; else echo "UNKNOWN" ; fi ; else echo $$VERSION ; fi )
+
+GIT_BRANCH=$(shell \
+	if test -e .git -a ! -z "$(shell which git)" ; \
+	then \
+		echo $(shell \
+			git branch | \
+			grep '*' | \
+			sed -e 's/^[[:space:]]*\*[[:space:]]*//' \
+				-e 's/[^a-zA-Z]/_/g' \
+			) ; \
+	else \
+		echo "UNKNOWN" ; \
+	fi )
+	
+VERSION=$(shell \
+	if test -z $$VERSION ; \
+	then \
+		echo git-$(GIT_BRANCH)-$(shell date +'%Y%m%d') ; \
+	else \
+		echo $$VERSION ; \
+	fi )
+
 OSNAME=$(shell uname -s)
 
 BINARY_DISTNAME=$(NAME)-$(VERSION)-$(OSNAME)
