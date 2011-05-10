@@ -35,7 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "TMsystem.h"
+#include "forking_system.h"
 #include "command_strings.h"
 #include "Configuration.h"
 
@@ -367,7 +367,7 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 							break;
 						
 						case executable:
-							TMsystem( configuration.buttonDownCommand[cmdidx].command );
+							forking_system( configuration.buttonDownCommand[cmdidx].command );
 							filterResult=B_SKIP_MESSAGE;						
 							break;
 

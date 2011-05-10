@@ -3,7 +3,7 @@
  *
  * -------------------------------------------------------------------------
  *
- * TMsystem.h - Wrapper for system call to fork off into separate thread
+ * forking_system.h - Wrapper for system call to fork off into separate thread
  *
  * -------------------------------------------------------------------------
  * 
@@ -27,20 +27,33 @@
  * -------------------------------------------------------------------------
  */
 
-#ifndef TM_SYSTEM
-#define TM_SYSTEM
+#ifndef _H_FORKING_SYSTEM
+#define _H_FORKING_SYSTEM
 
-int32 TMsystemthreadproc(const char *command)
+#include "ButtonDownCommand.h"
+
+int32 forking_system_threadproc( const char *command )
 {
-	system(command);
+	system( command );
+
 	return B_OK;
 }
 
-void TMsystem(const char *incommand)
+void forking_system( const char *command )
 {
-	char command[255];
-	strcpy(command,incommand);
-	resume_thread(spawn_thread((thread_entry)TMsystemthreadproc, "ownthreadsystem", B_LOW_PRIORITY, (char *)command));
+	char local_command[ MAX_COMMAND_LENGTH ];
+
+	strncpy( local_command, command, MAX_COMMAND_LENGTH );
+	local_command[ MAX_COMMAND_LENGTH - 1 ] = 0;
+	
+	resume_thread(
+		spawn_thread(
+			(thread_entry) forking_system_threadproc, 
+			"ownthreadsystem", 
+			B_LOW_PRIORITY, 
+			(char *) local_command
+		)
+	);
 }
 
 #endif
