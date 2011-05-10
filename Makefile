@@ -61,7 +61,7 @@ dist-src: clean
 dist-zip: 
 	$(MAKE) clean
 	$(MAKE) dist
-	rm -rf $(NAME)-$(VERSION)
+	rm -rf $(DISTNAME)
 	cp -a dist $(DISTNAME)
 	zip -r $(DISTNAME).zip $(DISTNAME)
 	rm -rf $(DISTNAME)
