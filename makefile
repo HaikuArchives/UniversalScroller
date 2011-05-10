@@ -2,6 +2,8 @@ export
 SUBDIRS=src/filter src/preferences
 ENV_VERSION:=$(VERSION)
 VERSION=$(shell if test -z $$VERSION ; then if test -e .git ; then echo git-$(shell git branch | grep '*' | sed -e 's/^[[:space:]]*\*[[:space:]]*//' -e 's/[^a-zA-Z]/_/g')-$(shell date +'%Y%m%d') ; else echo "UNKNOWN" ; fi ; else echo $$VERSION ; fi )
+OSNAME=$(shell uname -s)
+DISTNAME=$(NAME)-$(VERSION)-$(OSNAME)
 
 NAME=UniversalScroller
 URL=http://lirum.at/users/c.reuter/$(NAME)
@@ -27,9 +29,9 @@ dist: all
 
 dist-zip: dist
 	rm -rf $(NAME)-$(VERSION)
-	cp -a dist $(NAME)-$(VERSION)
-	zip -r $(NAME)-$(VERSION).zip $(NAME)-$(VERSION)
-	rm -rf $(NAME)-$(VERSION)
+	cp -a dist $(DISTNAME)
+	zip -r $(DISTNAME).zip $(DISTNAME)
+	rm -rf $(DISTNAME)
 
 release:
 	if test x$(VERSION) != x$(ENV_VERSION) ; then echo -e "\n\n\nTry issuing:\n\n  VERSION=3.9 make release\n\n" >&2 ; exit 1 ; fi
