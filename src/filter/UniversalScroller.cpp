@@ -345,7 +345,10 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 						case executable:
 							TMsystem( configuration.buttonDownCommand[cmdidx].command );
 							filterResult=B_SKIP_MESSAGE;						
-							break;		
+							break;
+
+						default:
+							break;
 					}
 				 				
 				} else {
