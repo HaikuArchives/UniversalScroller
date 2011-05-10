@@ -14,6 +14,7 @@ all:
 
 clean:
 	for SUBDIR in $(SUBDIRS) ; do pushd $$SUBDIR && $(MAKE) clean && popd ; done
+	rm -rf dist
 
 dist: all
 	rm -rf dist
