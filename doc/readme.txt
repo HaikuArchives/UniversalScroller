@@ -10,7 +10,8 @@
 3. How to use it
 4. What files are necessary
 5. Some websites
-6. Questions and Problems
+6. Source code
+7. Questions and Problems
 
 
 
@@ -70,7 +71,15 @@ Additionally you can turn off {{NAME}} by pressing the Option (Windows) key.
 
 
 
-6. Questions and Problems
+6. Source code
+=========================
+
+The source code of the program is available at
+{{URL}}
+
+
+
+7. Questions and Problems
 =========================
 
 Questions and Problems concerning this program please to
