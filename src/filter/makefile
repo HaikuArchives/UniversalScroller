@@ -67,12 +67,23 @@ LOCAL_INCLUDE_PATHS = ../include ../common
 
 #	specify the level of optimization that you desire
 #	NONE, SOME, FULL
-OPTIMIZE= 
+OPTIMIZE=
+ifeq ($(ENABLE_DEBUG), yes)
+        OPTIMIZE=FULL
+else
+        OPTIMIZE=NONE 
+endif
 
 #	specify any preprocessor symbols to be defined.  The symbols
 #	will be set to a value of 1.  For example specify DEBUG if you want
 #	DEBUG=1 to be set when compiling.
-DEFINES= 
+DEFINES=
+ifeq ($(ENABLE_DEBUG), yes)
+        DEFINES=DEBUG
+else
+        DEFINES=
+endif
+
 
 #	specify special warning levels
 #	if unspecified default warnings will be used
@@ -84,11 +95,21 @@ WARNINGS = ALL
 #	so that stack crawls in the debugger are meaningful
 #	if TRUE symbols will be created
 SYMBOLS = 
+ifeq ($(ENABLE_DEBUG), yes)
+        SYMBOLS=TRUE
+else
+        SYMBOLS=
+endif
 
 #	specify debug settings
 #	if TRUE will allow application to be run from
 #	a source-level debugger
 DEBUGGER = TRUE
+ifeq ($(ENABLE_DEBUG), yes)
+        DEBUGGER=TRUE
+else
+        DEBUGGER=
+endif
 
 #	specify additional compiler flags for all files
 COMPILER_FLAGS =

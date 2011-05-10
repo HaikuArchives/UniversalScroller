@@ -32,7 +32,16 @@
 
 #include <syslog.h>
 
+#ifdef DEBUG
+
 #define log( A ) syslog( LOG_DEBUG, A );
 #define log2( A, B ) syslog( LOG_DEBUG, A, B );
+
+#else
+
+#define log( A ) {}
+#define log2( A, B ) {}
+
+#endif
 
 #endif

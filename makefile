@@ -1,4 +1,14 @@
 export
+
+#------------------------------------
+
+# Unfortunately, "DEBUG" is used internally the "Generic BeOS Makefile"
+# framework. So we resort to using ENABLE_DEBUG
+
+ENABLE_DEBUG=yes
+
+#------------------------------------
+
 SUBDIRS=src/filter src/preferences
 ENV_VERSION:=$(VERSION)
 VERSION=$(shell if test -z $$VERSION ; then if test -e .git ; then echo git-$(shell git branch | grep '*' | sed -e 's/^[[:space:]]*\*[[:space:]]*//' -e 's/[^a-zA-Z]/_/g')-$(shell date +'%Y%m%d') ; else echo "UNKNOWN" ; fi ; else echo $$VERSION ; fi )
@@ -37,6 +47,7 @@ dist-zip: dist
 	rm -rf $(DISTNAME)
 
 release:
+	if test "x$(ENABLE_DEBUG)" != "x" ; then echo -e "\n\n\nAborting, as ENABLE_DEBUG is set\n\n" >&2 ; exit 1 ; fi
 	if test x$(VERSION) != x$(ENV_VERSION) ; then echo -e "\n\n\nTry issuing:\n\n  VERSION=3.9 make release\n\n" >&2 ; exit 1 ; fi
 	$(MAKE) dist-zip
 	
