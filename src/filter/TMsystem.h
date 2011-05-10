@@ -1,25 +1,31 @@
-/**********************************************************/
-/*                       TMsystem.h                       */
-/**********************************************************/
-/*                                                        */
-/* TMsystem is just like the normal system(...),          */
-/* with one exception. This one spawns a seperate thread  */
-/* to return to the caller immediately, and still launch  */
-/* the desired program                                    */
-/*                                                        */
-/*--------------------------------------------------------*/
-/*                                                        */
-/* infos, updates, questions, ...                         */
-/*    Troublemaker@altavista.net                          */
-/*    http://come.to/Troublemaker                         */
-/*                                                        */
-/*--------------------------------------------------------*/
-/*                                                        */
-/*  Author   Date        What                             */
-/*  Gisi   2000.08.27    TMsystem (copying command)       */
-/*  Gisi   2000.07.30    TMsystem (created)               */
-/*                                                        */
-/**********************************************************/
+/*
+ * UniversalScroller -- Enhancing input methods for BeOS and Haiku 
+ *
+ * -------------------------------------------------------------------------
+ *
+ * TMsystem.h - Wrapper for system call to fork off into separate thread
+ *
+ * -------------------------------------------------------------------------
+ * 
+ * Copyright (C) 2011  Christian Aistleitner <christian@quelltextlich.at>
+ *
+ * -------------------------------------------------------------------------
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * -------------------------------------------------------------------------
+ */
 
 #ifndef TM_SYSTEM
 #define TM_SYSTEM

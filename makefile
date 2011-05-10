@@ -6,8 +6,9 @@ OSNAME=$(shell uname -s)
 DISTNAME=$(NAME)-$(VERSION)-$(OSNAME)
 
 NAME=UniversalScroller
-URL=http://lirum.at/users/c.reuter/$(NAME)
-EMAIL=c.reuter@lirum.at
+NAME_LOWERCASE_NON_SPACED=universalscroller
+URL=http://$(NAME_LOWERCASE_NON_SPACED).quelltextlich.at/
+EMAIL=$(NAME_LOWERCASE_NON_SPACED)@quelltextlich.at
 
 all:
 	for SUBDIR in $(SUBDIRS) ; do pushd $$SUBDIR && $(MAKE) all && popd ; done
