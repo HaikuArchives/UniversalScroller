@@ -45,6 +45,10 @@ enum ButtonDownCommandKind { unknown, button, key, cut, copy, paste, executable 
 #define MAX_COMMAND_LENGTH 250
 
 class ButtonDownCommand {
+	friend class Configuration;
+	friend class UniversalScroller;
+	friend class MainWindow;
+	
 public:
 	ButtonDownCommand();
 	ButtonDownCommand( const ButtonDownCommand & );
@@ -55,17 +59,17 @@ public:
 	~ButtonDownCommand();
 
 	ButtonDownCommand & operator=( const ButtonDownCommand & );
-	
+		
+	static int32 mouseButtonIndexToMask( int );
+
+private:
 	ButtonDownCommandKind kind;
 	int mouseButtonIndex;
 	int mouseButtonClicks;
 	const char * command;
-	
-	static int32 mouseButtonIndexToMask( int );
-private:
+
 	void check_for_click( const char *, const char *, ButtonDownCommandKind, int, int );
     void check_for_simple_command( const char *, const char *, ButtonDownCommandKind );
-
 };
 
 #endif // _H_BUTTON_DOWN_COMMAND

@@ -38,6 +38,9 @@
 #define SCROLL_MOUSE_DOWN_MASK 7
 
 class Configuration {
+	friend class UniversalScroller;
+	friend class MainWindow;
+	
 public:
 	// create and reload the configuration
 	Configuration();	
@@ -46,6 +49,9 @@ public:
 	void load( void );
     void save( void );
 
+    static int getButtonDownIndex( int32, int32 );
+
+private:
 	int32 minScroll;	
 	int32 doubleClickSpeed[3];
 	ButtonDownCommand buttonDownCommand[9];
@@ -56,9 +62,6 @@ public:
 	bool useWheelFactors;
 	
 	bool scrollWhenMouseDown[8];
-
-    static int getButtonDownIndex( int32, int32 );
-private:
 
 };
 
