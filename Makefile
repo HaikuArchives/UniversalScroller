@@ -18,12 +18,10 @@ ENV_VERSION:=$(VERSION)
 GIT_BRANCH=$(shell \
 	if test -e .git -a -x /boot/common/bin/git ; \
 	then \
-		echo $(shell \
-			git branch | \
-			grep '*' | \
-			sed -e 's/^[[:space:]]*\*[[:space:]]*//' \
-				-e 's/[^a-zA-Z]/_/g' \
-			) ; \
+		git branch | \
+		grep '*' | \
+		sed -e 's/^[[:space:]]*\*[[:space:]]*//' \
+			-e 's/[^a-zA-Z]/_/g' ; \
 	else \
 		echo "UNKNOWN" ; \
 	fi )
