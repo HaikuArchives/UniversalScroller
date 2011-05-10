@@ -15,7 +15,11 @@ SUBDIRS=src/filter src/preferences
 ENV_VERSION:=$(VERSION)
 VERSION=$(shell if test -z $$VERSION ; then if test -e .git ; then echo git-$(shell git branch | grep '*' | sed -e 's/^[[:space:]]*\*[[:space:]]*//' -e 's/[^a-zA-Z]/_/g')-$(shell date +'%Y%m%d') ; else echo "UNKNOWN" ; fi ; else echo $$VERSION ; fi )
 OSNAME=$(shell uname -s)
-DISTNAME=$(NAME)-$(VERSION)-$(OSNAME)
+
+BINARY_DISTNAME=$(NAME)-$(VERSION)-$(OSNAME)
+ifeq ($(DISTNAME), )
+  DISTNAME=$(BINARY_DISTNAME)
+endif
 
 NAME=UniversalScroller
 NAME_LOWERCASE_NON_SPACED=universalscroller
@@ -27,7 +31,7 @@ all:
 
 clean:
 	for SUBDIR in $(SUBDIRS) ; do pushd $$SUBDIR && $(MAKE) clean && popd ; done
-	rm -rf dist
+	rm -rf dist dist-src
 
 dist: all
 	rm -rf dist
@@ -42,6 +46,18 @@ dist: all
 	chmod +x dist/uninstall.sh
 	chmod +x dist/Preferences
 
+dist-src: clean
+	rm -rf dist-src
+	mkdir dist-src
+	tar -c \
+		--exclude=dist \
+		--exclude=dist-src \
+		--exclude=.git \
+		--exclude=.gitignore \
+		--exclude=UniversalScroller-* \
+		. | ( cd dist-src ; tar -x )
+	cd dist-src ; $(MAKE) clean
+
 dist-zip: 
 	$(MAKE) clean
 	$(MAKE) dist
@@ -50,9 +66,22 @@ dist-zip:
 	zip -r $(DISTNAME).zip $(DISTNAME)
 	rm -rf $(DISTNAME)
 
+dist-src-zip:
+	if test "x$(DISTNAME)" = "x$(BINARY_DISTNAME)" ; then echo -e "\n\n\nDISTNAME not set. Try issuing:\n\n  make release-src\n\n" >&2 ; exit 1 ; fi
+	$(MAKE) clean
+	$(MAKE) dist-src
+	rm -rf $(DISTNAME)
+	cp -a dist-src $(DISTNAME)
+	zip -r $(DISTNAME).zip $(DISTNAME)
+	rm -rf $(DISTNAME)
+
 release:
 	if test x$(VERSION) != x$(ENV_VERSION) ; then echo -e "\n\n\nTry issuing:\n\n  VERSION=3.9 make release\n\n" >&2 ; exit 1 ; fi
 	ENABLE_DEBUG=no $(MAKE) dist-zip
+
+release-src:
+	if test x$(VERSION) != x$(ENV_VERSION) ; then echo -e "\n\n\nTry issuing:\n\n  VERSION=3.9 make release-src\n\n" >&2 ; exit 1 ; fi
+	DISTNAME=$(NAME)-$(VERSION)-src $(MAKE) dist-src-zip
 	
 test_UniversalScroller: all	
 	cp src/filter/obj.x86/UniversalScroller /boot/home/config/add-ons/input_server/filters
