@@ -43,10 +43,12 @@
 
 UniversalScroller::UniversalScroller()
 {
+	log( "Starting UniversalScroller\n" );
 }
 
 UniversalScroller::~UniversalScroller()
 {
+	log( "Stopping UniversalScroller\n" );
 }
 
 status_t UniversalScroller::InitCheck()
@@ -237,6 +239,8 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 	filter_result filterResult = B_DISPATCH_MESSAGE;
 
   
+	log2( "UniversalScroller received message: %X\n", message->what );
+
 	switch (message->what)
 	{
 		case B_MODIFIERS_CHANGED:
@@ -289,6 +293,9 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 			break;
 		
 		case B_MOUSE_DOWN:
+
+			log( "UniversalScroller MOUSE_DOWN\n");
+
 			if (!physicalIsAltKeyDown_s)
 			{
 			  	message->FindPoint("where",&physicalButtonDownPosition_s);
@@ -298,15 +305,21 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 				// cmdidx is the index of the interclicked command
 				int cmdidx = Configuration::getButtonDownIndex( physicalButtonsDown_s, physicalButtonsDown );
 
+				log2( "UniversalScroller MOUSE_DOWN: cmdidx = %d\n", cmdidx );
+				
 				if ( ( cmdidx != -1 ) && ( ! configuration.swallowClick[cmdidx] ) )
 				{			
 					int virtualButtonToPressIdx=0;	
 					int virtualButtonToPressClickCount=0;
 				
+					log2( "UniversalScroller MOUSE_DOWN: kind = %d\n", configuration.buttonDownCommand[cmdidx].kind );
+
 					switch ( configuration.buttonDownCommand[cmdidx].kind )
 					{
 
 						case button:
+							log( "UniversalScroller MOUSE_DOWN -> button\n" );
+							
  						    virtualButtonToPressIdx=configuration.buttonDownCommand[cmdidx].mouseButtonIndex;
 
 						   	if ( virtualButtonToPressIdx < 0 || virtualButtonToPressIdx >= CMD_MOUSE_BUTTON_INDICES_COUNT )
@@ -348,30 +361,42 @@ filter_result UniversalScroller::Filter(BMessage *message, BList *outList)
 							break;
 											
 						case key:
+							log( "UniversalScroller MOUSE_DOWN -> key\n" );
+							
 							simulate_keypress( configuration.buttonDownCommand[cmdidx].command, physicalModifiers, outList );
 							break;
 						
 						case cut:
+							log( "UniversalScroller MOUSE_DOWN -> cut\n" );
+
 							CREATE_OLD_MSG( 'CCUT' );
 							ENLIST_MSG();	
 							break;	
 
 						case copy:
+							log( "UniversalScroller MOUSE_DOWN -> copy\n" );
+
 							CREATE_OLD_MSG( 'COPY' );
 							ENLIST_MSG();	
 							break;
 
 						case paste:
+							log( "UniversalScroller MOUSE_DOWN -> paste\n" );
+
 							CREATE_OLD_MSG( 'PSTE' );
 							ENLIST_MSG();	
 							break;
 						
 						case executable:
+							log( "UniversalScroller MOUSE_DOWN -> executable\n" );
+						
 							forking_system( configuration.buttonDownCommand[cmdidx].command );
 							filterResult=B_SKIP_MESSAGE;						
 							break;
 
 						default:
+							log( "UniversalScroller MOUSE_DOWN -> ?\n" );
+						
 							break;
 					}
 				 				

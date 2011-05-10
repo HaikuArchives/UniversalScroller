@@ -3,7 +3,7 @@
  *
  * -------------------------------------------------------------------------
  *
- * forking_system.h - Wrapper for system call to fork off into separate thread
+ * log.h - Wrapper for logging information
  *
  * -------------------------------------------------------------------------
  * 
@@ -27,36 +27,12 @@
  * -------------------------------------------------------------------------
  */
 
-#ifndef _H_FORKING_SYSTEM
-#define _H_FORKING_SYSTEM
+#ifndef _H_LOG
+#define _H_LOG
 
-#include "ButtonDownCommand.h"
-#include "log.h"
+#include <syslog.h>
 
-int32 forking_system_threadproc( const char *command )
-{
-	system( command );
-
-	return B_OK;
-}
-
-void forking_system( const char *command )
-{
-	char local_command[ MAX_COMMAND_LENGTH ];
-
-	strncpy( local_command, command, MAX_COMMAND_LENGTH );
-	local_command[ MAX_COMMAND_LENGTH - 1 ] = 0;
-
-	log( "starting command thread\n" );
-	
-	resume_thread(
-		spawn_thread(
-			(thread_entry) forking_system_threadproc, 
-			"ownthreadsystem", 
-			B_LOW_PRIORITY, 
-			(char *) local_command
-		)
-	);
-}
+#define log( A ) syslog( LOG_DEBUG, A );
+#define log2( A, B ) syslog( LOG_DEBUG, A, B );
 
 #endif
