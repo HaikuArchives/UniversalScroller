@@ -5,7 +5,9 @@ export
 # Unfortunately, "DEBUG" is used internally the "Generic BeOS Makefile"
 # framework. So we resort to using ENABLE_DEBUG
 
-ENABLE_DEBUG=yes
+ifeq ($(ENABLE_DEBUG), )
+  ENABLE_DEBUG=yes
+endif
 
 #------------------------------------
 
@@ -40,16 +42,17 @@ dist: all
 	chmod +x dist/uninstall.sh
 	chmod +x dist/Preferences
 
-dist-zip: dist
+dist-zip: 
+	$(MAKE) clean
+	$(MAKE) dist
 	rm -rf $(NAME)-$(VERSION)
 	cp -a dist $(DISTNAME)
 	zip -r $(DISTNAME).zip $(DISTNAME)
 	rm -rf $(DISTNAME)
 
 release:
-	if test "x$(ENABLE_DEBUG)" != "x" ; then echo -e "\n\n\nAborting, as ENABLE_DEBUG is set\n\n" >&2 ; exit 1 ; fi
 	if test x$(VERSION) != x$(ENV_VERSION) ; then echo -e "\n\n\nTry issuing:\n\n  VERSION=3.9 make release\n\n" >&2 ; exit 1 ; fi
-	$(MAKE) dist-zip
+	ENABLE_DEBUG=no $(MAKE) dist-zip
 	
 test_UniversalScroller: all	
 	cp src/filter/obj.x86/UniversalScroller /boot/home/config/add-ons/input_server/filters
