@@ -16,7 +16,7 @@ SUBDIRS=src/filter src/preferences
 ENV_VERSION:=$(VERSION)
 
 GIT_BRANCH=$(shell \
-	if test -e .git -a ! -z "$(shell which git)" ; \
+	if test -e .git -a -x /boot/common/bin/git ; \
 	then \
 		echo $(shell \
 			git branch | \
