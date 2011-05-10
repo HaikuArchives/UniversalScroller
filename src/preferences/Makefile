@@ -68,12 +68,7 @@ LOCAL_INCLUDE_PATHS = ../include ../common
 
 #	specify the level of optimization that you desire
 #	NONE, SOME, FULL
-OPTIMIZE= 
-ifeq ($(ENABLE_DEBUG), yes) 
-  OPTIMIZE=NONE 
-else 
-  OPTIMIZE=FULL
-endif
+OPTIMIZE=NONE
 
 #	specify any preprocessor symbols to be defined.  The symbols
 #	will be set to a value of 1.  For example specify DEBUG if you want
