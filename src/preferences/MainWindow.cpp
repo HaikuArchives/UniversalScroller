@@ -29,6 +29,7 @@
  */
   
 #include <Application.h>
+#include <LayoutBuilder.h>
 #include <Window.h>
 #include <Button.h>
 #include <RadioButton.h>
@@ -47,6 +48,7 @@
 #include <termios.h>
 #include <string.h>
 #include <ctype.h>
+#include <SeparatorView.h>
 #include <TextControl.h>
 #include <CheckBox.h>
 
@@ -75,93 +77,93 @@
 #define MAX_CONF_STR 250
 
 MainWindow::MainWindow(BRect frame)
-				: BWindow(frame, "UniversalScroller - Preferences", B_TITLED_WINDOW, B_NOT_RESIZABLE )
+				: BWindow(frame, "UniversalScroller - Preferences", B_TITLED_WINDOW, B_NOT_ZOOMABLE | B_NOT_RESIZABLE |B_AUTO_UPDATE_SIZE_LIMITS )
 {
 	BView *view;
-	BTabView *tabview;
-	BTab *tab;		
-		
-	tabview=new BTabView( BRect(0,0,630,300),"tabview");
-
-    BRect tabViewFrame=BRect( 0, 0, 630, 300 );		
-	tabViewFrame.InsetBy(5,5);
-	tabViewFrame.bottom-=tabview->TabHeight();
+	BTabView* tabView = new BTabView("tabview", B_WIDTH_FROM_LABEL);
 	
 	//
 	// S C R O L L V I E W
 	//
-	view=new BView(tabViewFrame,"scrollview", B_FOLLOW_ALL, 0 );
+	view = new BView("Scrolling", B_WILL_DRAW);
     view->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
 
-	view->AddChild( new BStringView( BRect(0,5,210,25), NULL, "Use UniversalScrolling for") );
-	view->AddChild( new BStringView( BRect(0,25,210,45), NULL, "those combinations of buttons:") );
+	scrollWhenMouseDown_ctrl[1]=new BCheckBox("PT1","left",NULL);
+	scrollWhenMouseDown_ctrl[3]=new BCheckBox("PT3","left+right",NULL);
+	scrollWhenMouseDown_ctrl[5]=new BCheckBox("PT5","left+middle",NULL);
+	scrollWhenMouseDown_ctrl[7]=new BCheckBox("PT7","left+middle+right", NULL);
+	scrollWhenMouseDown_ctrl[4]=new BCheckBox("PT4","middle",NULL);
+	scrollWhenMouseDown_ctrl[6]=new BCheckBox("PT6","middle+right",NULL);
+	scrollWhenMouseDown_ctrl[2]=new BCheckBox("PT2","right",NULL);
 
-	scrollWhenMouseDown_ctrl[1]=new BCheckBox(BRect(210,30,500,45),"PT","left",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
-	view->AddChild(scrollWhenMouseDown_ctrl[1]);
-	scrollWhenMouseDown_ctrl[3]=new BCheckBox(BRect(210,50,500,65),"PT","left+right",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
-	view->AddChild(scrollWhenMouseDown_ctrl[3]);
-	scrollWhenMouseDown_ctrl[5]=new BCheckBox(BRect(210,70,500,85),"PT","left+middle",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
-	view->AddChild(scrollWhenMouseDown_ctrl[5]);
-	scrollWhenMouseDown_ctrl[7]=new BCheckBox(BRect(210,90,500,105),"PT","left+middle+right",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
-	view->AddChild(scrollWhenMouseDown_ctrl[7]);
-	scrollWhenMouseDown_ctrl[4]=new BCheckBox(BRect(210,110,500,125),"PT","middle",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
-	view->AddChild(scrollWhenMouseDown_ctrl[4]);
-	scrollWhenMouseDown_ctrl[6]=new BCheckBox(BRect(210,130,500,145),"PT","middle+right",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
-	view->AddChild(scrollWhenMouseDown_ctrl[6]);
-	scrollWhenMouseDown_ctrl[2]=new BCheckBox(BRect(210,150,500,165),"PT","right",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
-	view->AddChild(scrollWhenMouseDown_ctrl[2]);
-
-	view->AddChild(new BStringView(BRect(0,170,210,190), NULL, "Minimal mouse movement to"));
-	view->AddChild(new BStringView(BRect(0,190,210,215), NULL, "start UniversalScrolling:"));
-	minScroll_ctrl=new BTextControl(BRect(210,190,310,215), NULL, "","0",NULL,B_FOLLOW_LEFT,B_WILL_DRAW|B_NAVIGABLE);
+	minScroll_ctrl=new BTextControl(NULL, "","0",NULL);
 	minScroll_ctrl->SetDivider(0);
-	view->AddChild(minScroll_ctrl);
-
-
 	
-	tab=new BTab();
-	tabview->AddTab(view,tab);
-	tab->SetLabel("Scrolling");	
+	BLayoutBuilder::Group<>(view, B_VERTICAL, 0)
+		.SetInsets(B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
+		.Add(new BStringView( NULL, "Use UniversalScrolling for") )
+		.Add(new BStringView( NULL, "those combinations of buttons:") )
+		.AddGroup(B_VERTICAL, 0)
+		.SetInsets(B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
+			.Add(scrollWhenMouseDown_ctrl[1] )
+			.Add(scrollWhenMouseDown_ctrl[3] )
+			.Add(scrollWhenMouseDown_ctrl[5] )
+			.Add(scrollWhenMouseDown_ctrl[7] )
+			.Add(scrollWhenMouseDown_ctrl[4] )
+			.Add(scrollWhenMouseDown_ctrl[6] )
+			.Add(scrollWhenMouseDown_ctrl[2] )
+		.End()
+		.Add(new BStringView(NULL, "Minimal mouse movement to"))
+		.AddGroup(B_HORIZONTAL)
+			.Add(new BStringView(NULL, "start UniversalScrolling:"))
+			.Add(minScroll_ctrl)
+		.End();
+
+	tabView->AddTab(view);
+
 	
 	//
 	// S P E E D V I E W
 	//
-	view=new BView(tabViewFrame,"speedview",0,0);
+	view=new BView("Scroll-Speed", B_WILL_DRAW);
     view->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
 
-	useWheelFactors_ctrl=new BCheckBox(BRect(0,5,500,25), NULL, "Use below factors for scroll-wheels",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	view->AddChild(useWheelFactors_ctrl);
+	useWheelFactors_ctrl=new BCheckBox(NULL, "Use below factors for scroll-wheels",NULL);
 
-	view->AddChild(new BStringView(BRect(20,35,500,55), NULL, "normal Scroll-Speed"));
+	wheelFactorX_ctrl[0]=new BTextControl(NULL, "Factor X","0",NULL);
+	wheelFactorY_ctrl[0]=new BTextControl(NULL, "Factor Y","0",NULL);
+	wheelFactorX_ctrl[1]=new BTextControl(NULL, "Factor X","0",NULL);
+	wheelFactorY_ctrl[1]=new BTextControl(NULL, "Factor Y","0",NULL);
 
-	wheelFactorX_ctrl[0]=new BTextControl(BRect(40,55,200,75), NULL, "Factor X","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	wheelFactorX_ctrl[0]->SetDivider(70);
-	view->AddChild(wheelFactorX_ctrl[0]);
-
-	wheelFactorY_ctrl[0]=new BTextControl(BRect(40,75,200,95), NULL, "Factor Y","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	wheelFactorY_ctrl[0]->SetDivider(70);
-	view->AddChild(wheelFactorY_ctrl[0]);
-
-	view->AddChild(new BStringView(BRect(20,105,500,125), NULL, "fast Scroll-Speed"));
-
-	wheelFactorX_ctrl[1]=new BTextControl(BRect(40,125,200,145), NULL, "Factor X","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	wheelFactorX_ctrl[1]->SetDivider(70);
-	view->AddChild(wheelFactorX_ctrl[1]);
-
-	wheelFactorY_ctrl[1]=new BTextControl(BRect(40,145,200,165), NULL, "Factor Y","0",NULL,B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_NAVIGABLE);
-	wheelFactorY_ctrl[1]->SetDivider(70);
-	view->AddChild(wheelFactorY_ctrl[1]);
-
-	tab=new BTab();
-	tabview->AddTab(view,tab);
-	tab->SetLabel("Scroll-Speed");	
 	
+	BLayoutBuilder::Group<>(view, B_VERTICAL, 0)
+		.SetInsets(B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
+		.Add(useWheelFactors_ctrl)
+		.AddGroup(B_VERTICAL, 0)
+		.SetInsets(B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
+			.Add(new BStringView(NULL, "normal Scroll-Speed"))
+			.AddGroup(B_VERTICAL, 0)
+			.SetInsets(B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
+			.Add(wheelFactorX_ctrl[0])
+			.Add(wheelFactorY_ctrl[0])
+			.End()
+		.End()
+		.AddGroup(B_VERTICAL, 0)
+		.SetInsets(B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
+			.Add(new BStringView(NULL, "fast Scroll-Speed"))
+			.AddGroup(B_VERTICAL, 0)
+			.SetInsets(B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
+			.Add(wheelFactorX_ctrl[1])
+			.Add(wheelFactorY_ctrl[1])
+			.End()
+		.End();
+
+	tabView->AddTab(view);
 	//
 	// C L I C K V I E W
 	//
-	view=new BView(tabViewFrame,"clickview",0,0);
+	view = new BView("Clicks", B_WILL_DRAW);
     view->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
-	view->AddChild(new BStringView(BRect(10,10,300,25),NULL,"What to do when ..."));
 	
 	BMenu *menu;
 	menu = new BMenu( "" );
@@ -178,50 +180,58 @@ MainWindow::MainWindow(BRect frame)
 	menu->AddItem(new BMenuItem("middle down and right interclick",new BMessage(CHANGEEVENT_MSG+8)));	
 	menu->ItemAt( 0 )->SetMarked( true );
 	BMenuField *menuField;
-	menuField = new BMenuField( BRect( 20, 30, 340, 55 ), NULL, NULL, menu );
+	menuField = new BMenuField(NULL, NULL, menu );
 	
-	view->AddChild( menuField );
-	
-	swallowClick_ctrl=new BCheckBox(BRect(20,70,500,90), NULL, "swallow this click", NULL, B_FOLLOW_LEFT_RIGHT, B_WILL_DRAW|B_NAVIGABLE);
-	view->AddChild(swallowClick_ctrl);
-
-	command_ctrl=new BTextControl(BRect(10,95,340,115), NULL, "", "", NULL);
-	command_ctrl->SetDivider(0);
-	view->AddChild(command_ctrl);
-	
-	view->AddChild(new BButton(BRect( 10,125,120,150), NULL, "Left Sgl Click",new BMessage(LEFT_MSG)));
-	view->AddChild(new BButton(BRect(120,125,230,150), NULL, "Middle Sgl Click",new BMessage(MIDDLE_MSG)));
-	view->AddChild(new BButton(BRect(230,125,340,150), NULL, "Right Sgl Click",new BMessage(RIGHT_MSG)));
-	
-	view->AddChild(new BButton(BRect( 10,150,120,175), NULL, "Left Dbl Click",new BMessage(LEFTDBL_MSG)));
-	view->AddChild(new BButton(BRect(120,150,230,175), NULL, "Middle Dbl Click",new BMessage(MIDDLEDBL_MSG)));
-	view->AddChild(new BButton(BRect(230,150,340,175), NULL, "Right Dbl Click",new BMessage(RIGHTDBL_MSG)));
-
-	view->AddChild(new BButton(BRect( 10,175,120,200), NULL, "Cut",new BMessage(CUT_MSG)));
-	view->AddChild(new BButton(BRect(120,175,230,200), NULL, "Copy",new BMessage(COPY_MSG)));
-	view->AddChild(new BButton(BRect(230,175,340,200), NULL, "Paste",new BMessage(PASTE_MSG)));
+	swallowClick_ctrl = new BCheckBox(NULL, "swallow this click", NULL);
 
 
-	tab=new BTab();
-	tabview->AddTab(view,tab);
-	tab->SetLabel("Clicks");	
-	
+	command_ctrl=new BTextControl(NULL, "", "", NULL);
 
-	AddChild(tabview);
+	const int kMaxButton = 9;
+	BButton* button[kMaxButton];
+	BLayoutBuilder::Group<>(view, B_VERTICAL, 0)
+		.SetInsets(B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
+		.Add(new BStringView(NULL,"What to do when ..."))
+		.Add(menuField)
+		.Add(swallowClick_ctrl)
+		.Add(command_ctrl)
+		.AddGrid(0.0, 0.0)
+			.Add(button[0] = new BButton(NULL, "Left Sgl Click",new BMessage(LEFT_MSG)), 0, 0)
+			.Add(button[1] = new BButton(NULL, "Middle Sgl Click",new BMessage(MIDDLE_MSG)), 1, 0)
+			.Add(button[2] = new BButton(NULL, "Right Sgl Click",new BMessage(RIGHT_MSG)), 2,0)
+			.Add(button[3] = new BButton(NULL, "Left Dbl Click",new BMessage(LEFTDBL_MSG)), 0, 1)
+			.Add(button[4] = new BButton(NULL, "Middle Dbl Click",new BMessage(MIDDLEDBL_MSG)), 1, 1)
+			.Add(button[5] = new BButton(NULL, "Right Dbl Click",new BMessage(RIGHTDBL_MSG)), 2, 1)
+			.Add(button[6] = new BButton(NULL, "Cut",new BMessage(CUT_MSG)), 0, 2)
+			.Add(button[7] = new BButton(NULL, "Copy",new BMessage(COPY_MSG)), 1, 2)
+			.Add(button[8] = new BButton(NULL, "Paste",new BMessage(PASTE_MSG)), 2, 2);
+
+	for (int i = 0; i < kMaxButton; i++)
+			button[i]->SetExplicitMaxSize(BSize(B_SIZE_UNLIMITED, B_SIZE_UNSET));
+	tabView->AddTab(view);
+
 
     // Button Panel at bottom ----------------------------------------------------------------
-	BView *ButtonPanelBottom=new BView(BRect(0,300,630,325), NULL, B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM, 0 );
-    ButtonPanelBottom->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR)); 
-       	
-	ButtonPanelBottom->AddChild(new BButton(BRect(0,0,60,25), NULL,"Cancel",new BMessage(MSG_CANCEL)));
 
-	restartInputServer_ctrl=new BCheckBox(BRect(120,0,310,25), NULL, "restart inputserver on OK",NULL,B_FOLLOW_LEFT_RIGHT|B_FOLLOW_TOP,B_WILL_DRAW|B_NAVIGABLE);
+	restartInputServer_ctrl=new BCheckBox(NULL, "restart inputserver on OK",NULL);
     restartInputServer_ctrl->SetValue(B_CONTROL_ON);
-	ButtonPanelBottom->AddChild( restartInputServer_ctrl );
 
-	ButtonPanelBottom->AddChild(new BButton(BRect(310,0,370,25), NULL,"OK",new BMessage(MSG_OK),B_FOLLOW_RIGHT|B_FOLLOW_TOP));
-		
-	AddChild(ButtonPanelBottom);
+
+	tabView->SetBorder(B_NO_BORDER);
+
+	BLayoutBuilder::Group<>(this, B_VERTICAL, 0)
+		.SetInsets(0, B_USE_DEFAULT_SPACING, 0, B_USE_DEFAULT_SPACING)
+		.Add(tabView)
+		.Add(new BSeparatorView(B_HORIZONTAL))
+		.AddGroup(B_HORIZONTAL)
+			.Add(restartInputServer_ctrl)
+			.AddGlue()
+			.Add(new BButton("cancelButton", "Cancel",
+		new BMessage(MSG_CANCEL), B_WILL_DRAW))
+			.Add(new BButton("okButton", "OK",
+		new BMessage(MSG_OK), B_WILL_DRAW))
+			.SetInsets(B_USE_WINDOW_SPACING, B_USE_DEFAULT_SPACING,
+				B_USE_DEFAULT_SPACING, 0);
 
 	updateControlsFromConfiguration();
 
