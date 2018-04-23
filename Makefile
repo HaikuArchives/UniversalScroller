@@ -59,8 +59,8 @@ dist: all
 	scripts/substituting_cp.sh doc/readme.txt dist
 	scripts/substituting_cp.sh scripts/install.sh dist
 	scripts/substituting_cp.sh scripts/uninstall.sh dist
-	cp src/preferences/obj.$(BE_HOST_CPU)/Preferences dist
-	cp src/filter/obj.$(BE_HOST_CPU)/UniversalScroller dist
+	cp src/preferences/objects/Preferences dist
+	cp src/filter/objects/UniversalScroller dist
 	cp LICENSE.txt dist
 	chmod +x dist/install.sh
 	chmod +x dist/uninstall.sh
